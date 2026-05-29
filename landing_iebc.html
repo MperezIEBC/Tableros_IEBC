@@ -56,6 +56,17 @@ body { font-family:'Inter',sans-serif; background:#0a0e27; color:#fff; min-heigh
 .master-link:hover { background:rgba(43,43,212,0.1); border-color:rgba(43,43,212,0.3); color:#fff; }
 .master-link svg { width:20px; height:20px; }
 
+/* Update Button */
+.update-btn { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg, rgba(46,204,113,0.15), rgba(39,174,96,0.08)); border:1px solid rgba(46,204,113,0.3); border-radius:12px; padding:12px 28px; color:rgba(46,204,113,0.9); font-size:0.9rem; font-family:inherit; cursor:pointer; transition:all 0.3s; margin-top:16px; }
+.update-btn:hover { background:linear-gradient(135deg, rgba(46,204,113,0.25), rgba(39,174,96,0.15)); border-color:rgba(46,204,113,0.5); color:#2ecc71; transform:translateY(-2px); box-shadow:0 4px 15px rgba(46,204,113,0.2); }
+.update-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.update-btn svg { width:18px; height:18px; }
+.update-btn.spinning svg { animation: spin 1s linear infinite; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+.update-msg { font-size:0.8rem; margin-top:10px; padding:8px 16px; border-radius:8px; display:none; }
+.update-msg.success { display:block; background:rgba(46,204,113,0.1); color:#2ecc71; border:1px solid rgba(46,204,113,0.2); }
+.update-msg.error { display:block; background:rgba(231,76,60,0.1); color:#e74c3c; border:1px solid rgba(231,76,60,0.2); }
+
 /* Footer */
 .footer { text-align:center; margin-top:60px; padding-top:30px; border-top:1px solid rgba(255,255,255,0.06); }
 .footer img { height:80px; opacity:0.5; }
@@ -174,6 +185,12 @@ body { font-family:'Inter',sans-serif; background:#0a0e27; color:#fff; min-heigh
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
       Abrir Archivo Maestro en SharePoint
     </a>
+    <br>
+    <button class="update-btn" id="btnUpdate" onclick="triggerUpdate()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      Actualizar Tableros
+    </button>
+    <div class="update-msg" id="updateMsg"></div>
   </div>
 
   <footer class="footer">
@@ -206,6 +223,46 @@ document.getElementById('loginPass').addEventListener('keydown', function(e) {
 // Check if already authenticated in this session
 if (sessionStorage.getItem('iebc_auth') === '1') {
   document.getElementById('loginOverlay').classList.add('hidden');
+}
+
+// Update button
+function triggerUpdate() {
+  var btn = document.getElementById('btnUpdate');
+  var msg = document.getElementById('updateMsg');
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  btn.querySelector('svg').style.display = 'inline-block';
+  msg.className = 'update-msg';
+  msg.style.display = 'none';
+
+  fetch('https://api.github.com/repos/MperezIEBC/Tableros_IEBC/actions/workflows/update.yml/dispatches', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'token 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',
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ ref: 'main' })
+  })
+  .then(function(resp) {
+    if (resp.status === 204 || resp.ok) {
+      msg.textContent = '✅ Actualización lanzada. Los tableros se actualizarán en ~1 minuto.';
+      msg.className = 'update-msg success';
+    } else {
+      resp.text().then(function(t) {
+        msg.textContent = '❌ Error (' + resp.status + '): ' + t;
+        msg.className = 'update-msg error';
+      });
+    }
+  })
+  .catch(function(err) {
+    msg.textContent = '❌ Error de red: ' + err.message;
+    msg.className = 'update-msg error';
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.classList.remove('spinning');
+  });
 }
 
 </script>
