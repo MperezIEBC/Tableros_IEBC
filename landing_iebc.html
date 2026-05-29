@@ -225,9 +225,43 @@ if (sessionStorage.getItem('iebc_auth') === '1') {
   document.getElementById('loginOverlay').classList.add('hidden');
 }
 
-// Update button - opens GitHub Actions to trigger manually (secure, no token exposed)
+// Update button
 function triggerUpdate() {
-  window.open('https://github.com/MperezIEBC/Tableros_IEBC/actions/workflows/update.yml', '_blank');
+  var btn = document.getElementById('btnUpdate');
+  var msg = document.getElementById('updateMsg');
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  msg.className = 'update-msg';
+  msg.style.display = 'none';
+
+  fetch('https://api.github.com/repos/MperezIEBC/Tableros_IEBC/actions/workflows/update.yml/dispatches', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'token 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',
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ ref: 'main' })
+  })
+  .then(function(resp) {
+    if (resp.status === 204 || resp.ok) {
+      msg.textContent = '✅ Actualización lanzada. Los tableros se actualizarán en ~1 minuto.';
+      msg.className = 'update-msg success';
+    } else {
+      resp.text().then(function(t) {
+        msg.textContent = '❌ Error (' + resp.status + '): ' + t;
+        msg.className = 'update-msg error';
+      });
+    }
+  })
+  .catch(function(err) {
+    msg.textContent = '❌ Error de red: ' + err.message;
+    msg.className = 'update-msg error';
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.classList.remove('spinning');
+  });
 }
 
 </script>
