@@ -270,10 +270,15 @@ tr:hover td{background:#f8f9ff}
 
   <div class="charts-grid">
     <div class="chart-card full">
-      <h3>Evolucion Mensual: Certificado vs Facturado vs Cobrado</h3>
+      <h3>Por Período Certificado: Facturado vs Cobrado</h3>
       <div class="subtitle">Montos netos por periodo &mdash; Arrastre para navegar, botones para zoom</div>
       <div class="chart-toolbar" id="yearChips"></div>
       <div class="evol-scroll-wrap" id="evolScrollWrap"><div class="evol-inner"><div class="chart-container"><canvas id="chartEvolucion"></canvas></div></div></div>
+    </div>
+    <div class="chart-card full-width">
+      <h3>Mensual: Facturado Vs Cobrado (con imp.)</h3>
+      <div class="subtitle">Agrupado por mes de facturación y mes de cobro &mdash; Importes con impuestos</div>
+      <div class="evol-scroll-wrap" id="evolScrollWrap2"><div class="evol-inner"><div class="chart-container"><canvas id="chartFactCob"></canvas></div></div></div>
     </div>
     <div class="chart-card"><h3>Composicion de Deuda por Comitente</h3><div class="subtitle">Saldo pendiente de cobro</div><div class="chart-container"><canvas id="chartDeudores"></canvas></div></div>
     <div class="chart-card"><h3>Anticipos y Desacopios por UOP</h3><div class="subtitle">Datos de pestaña Anticipos del Archivo Maestro</div><div id="anticipoContainer"></div></div>
@@ -297,7 +302,7 @@ tr:hover td{background:#f8f9ff}
       <div class="status-chip rojo active" data-status="4" onclick="toggleStatusFilter(this)">Notas de Credito</div>
     </div>
     <div class="legend-bar"><div class="legend-item"><div class="legend-dot" style="background:#2b2bd4"></div>Sin facturar</div><div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>Pend. cobro</div><div class="legend-item"><div class="legend-dot" style="background:#6c5ce7"></div>Parcial</div><div class="legend-item"><div class="legend-dot" style="background:#00d4aa"></div>Cobrado</div><div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Nota de Credito</div></div>
-    <div style="overflow-x:auto"><table id="tableFacturas"><thead><tr><th>UOP</th><th>Periodo</th><th>Comprobante</th><th>Concepto</th><th class="text-right">Certificado</th><th class="text-right">Neto Factura</th><th class="text-right">Fact. c/Imp</th><th class="text-right">Cobrado</th><th class="text-right">Saldo</th><th>Estado</th><th>Demora</th></tr></thead><tbody></tbody></table></div>
+    <div style="overflow-x:auto"><table id="tableFacturas"><thead><tr><th>UOP</th><th>Periodo</th><th>Comprobante</th><th>Concepto</th><th class="text-right">Certificado</th><th class="text-right">Neto Factura</th><th class="text-right">Fact. c/Imp</th><th class="text-right">Cobrado</th><th class="text-right">Saldo</th><th>Estado</th><th>Demora</th></tr></thead><tbody></tbody><tfoot id="tableFacturasFoot"><tr style="font-weight:700;background:#f0f0f5;border-top:2px solid #2b2bd4"><td colspan="4" style="text-align:right">TOTALES</td><td class="text-right" id="tfCert">-</td><td class="text-right" id="tfNeto">-</td><td class="text-right" id="tfImp">-</td><td class="text-right" id="tfCob">-</td><td class="text-right" id="tfSaldo">-</td><td colspan="2"></td></tr></tfoot></table></div>
   </div>
 
   </div><!-- end tab-main -->
@@ -435,7 +440,7 @@ function getAvailableOptions(){
     comitentes: new Set(applyOtherFilters(DATA.records,'com').map(r=>r.comitente).filter(c=>c&&c!=='N/A')),
     uops: new Set(applyOtherFilters(DATA.records,'uop').map(r=>r.uop)),
     estados: new Set(applyOtherFilters(DATA.records,'est').map(r=>r.estado_validacion).filter(Boolean)),
-    anios: new Set(applyOtherFilters(DATA.records,'anio').map(r=>r.periodo?r.periodo.substring(0,4):null).filter(Boolean)),
+    anios: new Set(applyOtherFilters(DATA.records,'anio').map(r=>r.periodo?r.periodo.substring(0,4):null).filter(v=>v&&/^\d{4}$/.test(v))),
     meses: new Set(applyOtherFilters(DATA.records,'mes').map(r=>r.periodo?r.periodo.substring(5,7):null).filter(Boolean))
   };
 }
@@ -523,7 +528,7 @@ buildMS('msEstado',rawEstados.map(e=>({value:e})),o=>estadoMap[o.value]);
 
 // Year and Month filters
 const mesNames={'01':'Enero','02':'Febrero','03':'Marzo','04':'Abril','05':'Mayo','06':'Junio','07':'Julio','08':'Agosto','09':'Septiembre','10':'Octubre','11':'Noviembre','12':'Diciembre'};
-const anios=[...new Set(DATA.records.map(r=>r.periodo?r.periodo.substring(0,4):null).filter(Boolean))].sort();
+const anios=[...new Set(DATA.records.map(r=>r.periodo?r.periodo.substring(0,4):null).filter(v=>v&&/^\d{4}$/.test(v)))].sort();
 const meses=[...new Set(DATA.records.map(r=>r.periodo?r.periodo.substring(5,7):null).filter(Boolean))].sort();
 buildMS('msAnio',anios.map(a=>({value:a})));
 buildMS('msMes',meses.map(m=>({value:m})),o=>mesNames[o.value]||o.value);
@@ -647,7 +652,7 @@ function renderFacturasTable(recs){
   allR.sort((a,b)=>{if(a.status!==b.status)return a.status-b.status;return b.saldo-a.saldo});
   const fil=allR.filter(r=>activeStatuses.has(r.status)||r.status===5);
   fil.forEach(r=>{
-    const imp=(r.iva_1005||0)+(r.iva_21||0)+(r.percep_iva||0)+(r.iibb_bsas||0)+(r.iibb_caba||0)+(r.iibb_tucuman||0)+(r.iibb_stafe||0);
+    const imp=(r.iva_105||0)+(r.iva_21||0)+(r.percep_iva||0)+(r.iibb_bsas||0)+(r.iibb_caba||0)+(r.iibb_tucuman||0)+(r.iibb_stafe||0);
     const fci=r.importe_neto_factura>0?r.importe_neto_factura+imp:0;
     const dem=r.demora_pago==='Pendiente'?'<span style="color:#f39c12;font-weight:600">Pend.</span>':(r.demora_pago?r.demora_pago+'d':'-');
     const per=r.periodo&&/^\d{4}/.test(r.periodo)?r.periodo.substring(0,7):'-';
@@ -658,6 +663,22 @@ function renderFacturasTable(recs){
     const chip=document.querySelector('.status-chip[data-status="'+s+'"]');
     if(chip){const t=chip.textContent.replace(/\s*\(\d+\)/,'');chip.textContent=t+' ('+cnt+')'}
   });
+  // Totales del pie de tabla
+  let tCert=0,tNeto=0,tImp=0,tCob=0,tSaldo=0;
+  fil.forEach(r=>{
+    tCert+=r.importe_neto_cert;
+    tNeto+=r.importe_neto_factura;
+    const imp=(r.iva_105||0)+(r.iva_21||0)+(r.percep_iva||0)+(r.iibb_bsas||0)+(r.iibb_caba||0)+(r.iibb_tucuman||0)+(r.iibb_stafe||0);
+    tImp+=r.importe_neto_factura>0?r.importe_neto_factura+imp:0;
+    tCob+=r.total_cobrado;
+    tSaldo+=r.saldo;
+  });
+  document.getElementById('tfCert').textContent=fmtFull(tCert);
+  document.getElementById('tfNeto').textContent=fmtFull(tNeto);
+  document.getElementById('tfImp').textContent=fmtFull(tImp);
+  document.getElementById('tfCob').textContent=fmtFull(tCob);
+  document.getElementById('tfSaldo').textContent=fmtFull(tSaldo);
+  document.getElementById('tfSaldo').className='text-right '+(tSaldo>10?'text-red':'text-green');
 }
 
 function renderAll(){
@@ -693,6 +714,32 @@ function renderAll(){
       {label:'Certificado',data:pK.map(k=>periods[k].cert),backgroundColor:'rgba(43,43,212,0.75)',borderRadius:4},
       {label:'Facturado',data:pK.map(k=>periods[k].fact),backgroundColor:'rgba(0,212,170,0.75)',borderRadius:4},
       {label:'Cobrado',data:pK.map(k=>periods[k].cob),backgroundColor:'rgba(108,92,231,0.55)',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtMillones(ctx.raw)}}},scales:{y:{ticks:{callback:v=>fmtM(v)},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}},
+    plugins:[barValuePlugin]
+  });
+
+  // FACTURADO VS COBRADO MENSUAL (con impuestos) - by fecha_factura and fecha_pago
+  const pFact={}, pCob={};
+  recs.forEach(r=>{
+    // Facturado: agrupar por mes de fecha_factura
+    if(r.fecha_factura && r.importe_factura){
+      const kf=r.fecha_factura.substring(0,7);
+      pFact[kf]=(pFact[kf]||0)+r.importe_factura;
+    }
+    // Cobrado: agrupar por mes de fecha_pago_1
+    if(r.fecha_pago_1 && r.total_cobrado){
+      const kc=r.fecha_pago_1.substring(0,7);
+      pCob[kc]=(pCob[kc]||0)+r.total_cobrado;
+    }
+  });
+  const allMonths=[...new Set([...Object.keys(pFact),...Object.keys(pCob)])].sort();
+  if(charts.factcob)charts.factcob.destroy();
+  charts.factcob=new Chart(document.getElementById('chartFactCob'),{
+    type:'bar',
+    data:{labels:allMonths,datasets:[
+      {label:'Facturado (c/imp)',data:allMonths.map(k=>pFact[k]||0),backgroundColor:'rgba(243,156,18,0.75)',borderRadius:4},
+      {label:'Cobrado',data:allMonths.map(k=>pCob[k]||0),backgroundColor:'rgba(0,212,170,0.75)',borderRadius:4}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtMillones(ctx.raw)}}},scales:{y:{ticks:{callback:v=>fmtM(v)},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}},
     plugins:[barValuePlugin]
