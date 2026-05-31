@@ -224,13 +224,24 @@ if (sessionStorage.getItem('iebc_auth') === '1') {
   document.getElementById('loginOverlay').classList.add('hidden');
 }
 
-// Show last update date from localStorage
+// Fetch real last update from GitHub commits
 function showLastUpdate() {
   var el = document.getElementById('lastUpdateDate');
-  var last = localStorage.getItem('iebc_last_update');
-  if (last) {
-    el.textContent = 'Actualizado al: ' + last;
-  }
+  el.textContent = 'Consultando última actualización...';
+  fetch('https://api.github.com/repos/MperezIEBC/Tableros_IEBC/commits?per_page=1', {
+    headers: { 'Accept': 'application/vnd.github.v3+json' }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data && data.length > 0) {
+      var commitDate = new Date(data[0].commit.committer.date);
+      var dateStr = commitDate.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' ' + commitDate.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+      el.textContent = 'Actualizado al: ' + dateStr;
+    }
+  })
+  .catch(function() {
+    el.textContent = '';
+  });
 }
 showLastUpdate();
 
@@ -254,11 +265,7 @@ function triggerUpdate() {
   })
   .then(function(resp) {
     if (resp.status === 204 || resp.ok) {
-      var now = new Date();
-      var dateStr = now.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' + now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-      localStorage.setItem('iebc_last_update', dateStr);
-      document.getElementById('lastUpdateDate').textContent = 'Actualizado al: ' + dateStr;
-      msg.textContent = '✅ Actualización lanzada. Los tableros se actualizarán en ~1 minuto.';
+      msg.textContent = '✅ Actualización lanzada. Los tableros se actualizarán en ~1 minuto. La fecha se actualizará automáticamente.';
       msg.className = 'update-msg success';
     } else {
       resp.text().then(function(t) {
