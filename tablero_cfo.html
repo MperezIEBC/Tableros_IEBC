@@ -1172,7 +1172,7 @@ function triggerUpdateSm(){
   msg.className='update-msg-sm';msg.style.display='none';
   fetch('https://api.github.com/repos/MperezIEBC/Tableros_IEBC/actions/workflows/update.yml/dispatches',{
     method:'POST',
-    headers:{'Authorization':'token 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','Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+    headers:{'Authorization':'token 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','Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
     body:JSON.stringify({ref:'main'})
   }).then(function(resp){
     if(resp.status===204||resp.ok){msg.textContent='Actualización lanzada (~1 min)';msg.className='update-msg-sm success'}

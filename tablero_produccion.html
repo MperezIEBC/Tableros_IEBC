@@ -481,7 +481,7 @@ function triggerUpdateSm(){
   var btn=document.getElementById('btnUpdateSm');var msg=document.getElementById('updateMsgSm');
   btn.disabled=true;btn.classList.add('spinning');msg.className='update-msg-sm';msg.style.display='none';
   fetch('https://api.github.com/repos/MperezIEBC/Tableros_IEBC/actions/workflows/update.yml/dispatches',{
-    method:'POST',headers:{'Authorization':'token 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','Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+    method:'POST',headers:{'Authorization':'token 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','Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
     body:JSON.stringify({ref:'main'})
   }).then(function(r){if(r.status===204||r.ok){msg.textContent='Actualización lanzada (~1 min)';msg.className='update-msg-sm success'}else{msg.textContent='Error '+r.status;msg.className='update-msg-sm error'}})
   .catch(function(){msg.textContent='Error de red';msg.className='update-msg-sm error'})
