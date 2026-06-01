@@ -308,34 +308,28 @@ def replace_json_array(html, key, new_data):
 
 
 def replace_json_object(html, var_name, new_data):
-    """Reemplaza un objeto JSON asignado a una variable const."""
-    pattern = f'const {var_name}\\s*=\\s*'
+    """Reemplaza un objeto JSON asignado a una variable const.
+    Expects the variable to be on its own line(s), ending with ;\n before </script>."""
+    pattern = f'(?:const|var)\\s+{var_name}\\s*=\\s*'
     m = re.search(pattern, html)
     if not m:
         log.warning(f"  Variable '{var_name}' no encontrada en HTML")
         return html
 
     start = m.end()
-    # Use json.JSONDecoder to find exact end of JSON object
-    decoder = json.JSONDecoder()
-    try:
-        _, end_offset = decoder.raw_decode(html, start)
-        end = start + end_offset if end_offset > 0 else None
-    except json.JSONDecodeError:
-        end = None
+    # Find the next </script> tag - the JSON must end before it
+    script_end = html.find('\n</script>', start)
+    if script_end < 0:
+        script_end = html.find('</script>', start)
+    if script_end < 0:
+        log.warning(f"  No se pudo encontrar </script> despues de '{var_name}'")
+        return html
 
-    if end is None:
-        # Fallback: find the "; or ";\n" after the object
-        semi = html.find(';', start)
-        if semi > start:
-            end = semi
-        else:
-            log.warning(f"  No se pudo encontrar cierre de '{var_name}'")
-            return html
-
-    old_len = end - start
+    # Everything from start to script_end is the JSON + semicolon
+    old_chunk = html[start:script_end].rstrip().rstrip(';').rstrip()
+    old_len = len(old_chunk)
     new_json = json.dumps(new_data, ensure_ascii=False)
-    html = html[:start] + new_json + html[end:]
+    html = html[:start] + new_json + ';\n' + html[script_end:]
     log.info(f"  '{var_name}': {old_len} → {len(new_json)} chars")
     return html
 
