@@ -336,3 +336,29 @@
 ✓ Todos los tableros actualizados exitosamente
 2026-06-01 17:07:22,965 [INFO]   (Push a GitHub omitido - modo CI)
 2026-06-01 17:07:22,965 [INFO] ============================================================
+2026-06-01 17:12:00,502 [INFO] ============================================================
+2026-06-01 17:12:00,502 [INFO] IEBC - Actualización automática de tableros
+2026-06-01 17:12:00,502 [INFO] Fecha: 2026-06-01 17:12:00
+2026-06-01 17:12:00,502 [INFO] ============================================================
+2026-06-01 17:12:00,589 [INFO] Leyendo Excel: Master UOPs.xlsx
+2026-06-01 17:12:00,713 [INFO] Hojas encontradas: ['Master', '530 con Mora - Calc de int', 'Anticipos']
+2026-06-01 17:12:00,728 [INFO] Master: 204 registros
+2026-06-01 17:12:00,729 [INFO] Anticipos: 7 registros
+2026-06-01 17:12:00,730 [INFO] Mora: 22 facturas, Total a reclamar: $320,304,946.82
+2026-06-01 17:12:00,730 [INFO] Actualizando: ./tablero_cfo.html
+2026-06-01 17:12:00,747 [INFO]   'records': 200863 → 202593 chars
+2026-06-01 17:12:00,749 [INFO]   'anticipos': 2586 → 2587 chars
+2026-06-01 17:12:00,750 [INFO]   'MORA_DATA': 512086 → 7454 chars
+2026-06-01 17:12:00,752 [INFO]   Guardado: 500KB
+2026-06-01 17:12:00,752 [INFO] Actualizando: ./tablero_ceo.html
+2026-06-01 17:12:00,767 [INFO]   'records': 200863 → 202593 chars
+2026-06-01 17:12:00,768 [INFO]   'anticipos': 2586 → 2587 chars
+2026-06-01 17:12:00,769 [INFO]   Guardado: 451KB
+2026-06-01 17:12:00,769 [INFO] Actualizando: ./tablero_produccion.html
+2026-06-01 17:12:00,785 [INFO]   'records': 200863 → 202593 chars
+2026-06-01 17:12:00,786 [INFO]   'anticipos': 2586 → 2587 chars
+2026-06-01 17:12:00,787 [INFO]   Guardado: 453KB
+2026-06-01 17:12:00,787 [INFO] 
+✓ Todos los tableros actualizados exitosamente
+2026-06-01 17:12:00,787 [INFO]   (Push a GitHub omitido - modo CI)
+2026-06-01 17:12:00,787 [INFO] ============================================================
