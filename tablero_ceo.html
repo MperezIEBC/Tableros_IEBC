@@ -61,15 +61,6 @@ window.addEventListener('scroll',function(){
 .back-link:hover{
   color:#a29bfe;
 }
-.update-btn-sm{display:inline-flex;align-items:center;gap:5px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);border-radius:8px;padding:5px 14px;color:#2ecc71;font-size:0.75rem;font-family:inherit;cursor:pointer;transition:all 0.3s;margin-left:12px;vertical-align:middle}
-.update-btn-sm:hover{background:rgba(46,204,113,0.3);border-color:#2ecc71;transform:translateY(-1px)}
-.update-btn-sm:disabled{opacity:0.5;cursor:not-allowed;transform:none}
-.update-btn-sm svg{width:14px;height:14px}
-.update-btn-sm.spinning svg{animation:spinBtn 1s linear infinite}
-@keyframes spinBtn{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.update-msg-sm{font-size:0.7rem;padding:4px 10px;border-radius:6px;display:none;margin-left:10px}
-.update-msg-sm.success{display:inline;background:rgba(46,204,113,0.1);color:#2ecc71}
-.update-msg-sm.error{display:inline;background:rgba(231,76,60,0.1);color:#e74c3c}
 .date-info{color:#8e8ea0;font-size:0.85rem;font-family:"Segoe UI",system-ui,sans-serif;font-weight:400;font-style:italic;letter-spacing:0.3px}
 .topbar img{
   height:90px;
@@ -184,7 +175,6 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:
 <div class="topbar">
   <div class="title-section">
     <a href="landing_iebc.html" class="back-link">&larr; Inicio</a>
-    <button class="update-btn-sm" id="btnUpdateSm" onclick="triggerUpdateSm()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Actualizar</button><span class="update-msg-sm" id="updateMsgSm"></span>
     <h1><span class="title-badge">Vision Ejecutiva</span></h1>
   </div>
   <span class="date-info" id="lastUpdate"></span>
@@ -429,16 +419,9 @@ if(DATA.anticipos && DATA.anticipos.length>0){
   document.getElementById('anticiposCardsExec').innerHTML=antHtml;
 }
 
-function triggerUpdateSm(){
-  var btn=document.getElementById('btnUpdateSm');var msg=document.getElementById('updateMsgSm');
-  btn.disabled=true;btn.classList.add('spinning');msg.className='update-msg-sm';msg.style.display='none';
-  fetch('https://api.github.com/repos/MperezIEBC/Tableros_IEBC/actions/workflows/update.yml/dispatches',{
-    method:'POST',headers:{'Authorization':'token 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','Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
-    body:JSON.stringify({ref:'main'})
-  }).then(function(r){if(r.status===204||r.ok){msg.textContent='Actualización lanzada (~1 min)';msg.className='update-msg-sm success'}else{msg.textContent='Error '+r.status;msg.className='update-msg-sm error'}})
-  .catch(function(){msg.textContent='Error de red';msg.className='update-msg-sm error'})
-  .finally(function(){btn.disabled=false;btn.classList.remove('spinning')});
-}
+// Fetch last update from GitHub
+fetch('https://api.github.com/repos/MperezIEBC/Tableros_IEBC/commits?per_page=1',{headers:{'Accept':'application/vnd.github.v3+json'}})
+.then(function(r){return r.json()}).then(function(d){if(d&&d.length>0){var dt=new Date(d[0].commit.committer.date);var el=document.getElementById('lastUpdate');if(el)el.textContent='Actualizado: '+dt.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+dt.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}}).catch(function(){});
 </script>
 </body>
 </html>
