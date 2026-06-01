@@ -309,23 +309,30 @@ def replace_json_array(html, key, new_data):
 
 def replace_json_object(html, var_name, new_data):
     """Reemplaza un objeto JSON asignado a una variable const."""
-    pattern = f'const {var_name}\\s*=\\s*\\{{'
+    pattern = f'const {var_name}\\s*=\\s*'
     m = re.search(pattern, html)
     if not m:
         log.warning(f"  Variable '{var_name}' no encontrada en HTML")
         return html
-    
-    start = m.end() - 1  # posición del {
-    bracket_count = 0
-    for i in range(start, len(html)):
-        if html[i] == '{':
-            bracket_count += 1
-        elif html[i] == '}':
-            bracket_count -= 1
-            if bracket_count == 0:
-                end = i + 1
-                break
-    
+
+    start = m.end()
+    # Use json.JSONDecoder to find exact end of JSON object
+    decoder = json.JSONDecoder()
+    try:
+        _, end_offset = decoder.raw_decode(html, start)
+        end = start + end_offset if end_offset > 0 else None
+    except json.JSONDecodeError:
+        end = None
+
+    if end is None:
+        # Fallback: find the "; or ";\n" after the object
+        semi = html.find(';', start)
+        if semi > start:
+            end = semi
+        else:
+            log.warning(f"  No se pudo encontrar cierre de '{var_name}'")
+            return html
+
     old_len = end - start
     new_json = json.dumps(new_data, ensure_ascii=False)
     html = html[:start] + new_json + html[end:]
