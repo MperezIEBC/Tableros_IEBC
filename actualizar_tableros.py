@@ -277,8 +277,28 @@ def read_excel(excel_path):
             log.info(f"Mora: {len(facturas)} facturas, Total a reclamar: ${total_reclamar:,.2f}")
             break
     
+    # ====== HOJA 4: Montos contractuales ======
+    montos_contractuales = {}
+    for sn in wb.sheetnames:
+        if 'montos contractuales' in sn.lower():
+            ws_mc = wb[sn]
+            for row in ws_mc.iter_rows(min_row=3, values_only=True):
+                uop = str(row[0]).strip() if row[0] else None
+                concepto = str(row[1]).strip() if row[1] else ''
+                monto = float(row[2]) if row[2] else 0
+                if not uop or monto == 0:
+                    continue
+                if uop not in montos_contractuales:
+                    montos_contractuales[uop] = {"monto": 0, "concepto": concepto}
+                montos_contractuales[uop]["monto"] += monto
+                # Keep first concepto or combine
+                if concepto and concepto not in montos_contractuales[uop]["concepto"]:
+                    montos_contractuales[uop]["concepto"] += ' + ' + concepto if montos_contractuales[uop]["concepto"] else concepto
+            log.info(f"Montos contractuales: {len(montos_contractuales)} UOPs")
+            break
+
     wb.close()
-    return records, anticipos, mora_data
+    return records, anticipos, mora_data, montos_contractuales
 
 
 def replace_json_array(html, key, new_data):
@@ -334,7 +354,31 @@ def replace_json_object(html, var_name, new_data):
     return html
 
 
-def update_html_file(filepath, records, anticipos, mora_data=None):
+def replace_json_obj_by_key(html, key, new_data):
+    """Reemplaza un objeto JSON embebido por key (ej: 'montos_contractuales':{...})."""
+    pattern = f'"{key}"\\s*:\\s*\\{{'
+    m = re.search(pattern, html)
+    if not m:
+        log.warning(f"  Key '{key}' no encontrada en HTML")
+        return html
+    pos = m.end() - 1  # posición del {
+    bracket_count = 0
+    for i in range(pos, len(html)):
+        if html[i] == '{':
+            bracket_count += 1
+        elif html[i] == '}':
+            bracket_count -= 1
+            if bracket_count == 0:
+                end = i + 1
+                break
+    old_len = end - pos
+    new_json = json.dumps(new_data, ensure_ascii=False, default=str)
+    html = html[:pos] + new_json + html[end:]
+    log.info(f"  '{key}': {old_len} → {len(new_json)} chars")
+    return html
+
+
+def update_html_file(filepath, records, anticipos, mora_data=None, montos_contractuales=None):
     """Actualiza un archivo HTML con los datos frescos."""
     log.info(f"Actualizando: {filepath}")
     
@@ -347,6 +391,10 @@ def update_html_file(filepath, records, anticipos, mora_data=None):
     # Reemplazar anticipos
     html = replace_json_array(html, 'anticipos', anticipos)
     
+    # Reemplazar montos_contractuales (solo CEO)
+    if montos_contractuales and 'montos_contractuales' in html:
+        html = replace_json_obj_by_key(html, 'montos_contractuales', montos_contractuales)
+
     # Reemplazar MORA_DATA (solo CFO)
     if mora_data and 'MORA_DATA' in html:
         html = replace_json_object(html, 'MORA_DATA', mora_data)
@@ -441,7 +489,7 @@ def main():
     
     # Leer datos
     try:
-        records, anticipos, mora_data = read_excel(args.ruta_excel)
+        records, anticipos, mora_data, montos_contractuales = read_excel(args.ruta_excel)
     except Exception as e:
         log.error(f"Error leyendo Excel: {e}")
         sys.exit(1)
@@ -454,7 +502,7 @@ def main():
             log.warning(f"Archivo no encontrado: {fpath}")
             continue
         try:
-            update_html_file(fpath, records, anticipos, mora_data)
+            update_html_file(fpath, records, anticipos, mora_data, montos_contractuales)
         except Exception as e:
             log.error(f"Error actualizando {fname}: {e}")
             errores += 1
