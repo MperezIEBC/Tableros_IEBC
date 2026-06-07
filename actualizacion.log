@@ -776,3 +776,31 @@
 ✓ Todos los tableros actualizados exitosamente
 2026-06-06 20:47:26,133 [INFO]   (Push a GitHub omitido - modo CI)
 2026-06-06 20:47:26,133 [INFO] ============================================================
+2026-06-07 08:39:04,174 [INFO] ============================================================
+2026-06-07 08:39:04,175 [INFO] IEBC - Actualización automática de tableros
+2026-06-07 08:39:04,175 [INFO] Fecha: 2026-06-07 08:39:04
+2026-06-07 08:39:04,175 [INFO] ============================================================
+2026-06-07 08:39:04,298 [INFO] Leyendo Excel: Master UOPs.xlsx
+2026-06-07 08:39:04,430 [INFO] Hojas encontradas: ['Master', '530 con Mora - Calc de int', 'Anticipos', 'Montos contractuales']
+2026-06-07 08:39:04,446 [INFO] Master: 202 registros
+2026-06-07 08:39:04,446 [INFO] Anticipos: 7 registros
+2026-06-07 08:39:04,447 [INFO] Mora: 22 facturas, Total a reclamar: $320,429,133.27
+2026-06-07 08:39:04,447 [INFO] Montos contractuales: 6 UOPs
+2026-06-07 08:39:04,447 [INFO] Actualizando: ./tablero_cfo.html
+2026-06-07 08:39:04,467 [INFO]   'records': 200863 → 200863 chars
+2026-06-07 08:39:04,469 [INFO]   'anticipos': 2586 → 2586 chars
+2026-06-07 08:39:04,475 [INFO]   'MORA_DATA': 7457 → 7457 chars
+2026-06-07 08:39:04,475 [INFO]   Guardado: 520KB
+2026-06-07 08:39:04,476 [INFO] Actualizando: ./tablero_ceo.html
+2026-06-07 08:39:04,493 [INFO]   'records': 200863 → 200863 chars
+2026-06-07 08:39:04,494 [INFO]   'anticipos': 2586 → 2586 chars
+2026-06-07 08:39:04,495 [INFO]   'montos_contractuales': 429 → 429 chars
+2026-06-07 08:39:04,497 [INFO]   Guardado: 477KB
+2026-06-07 08:39:04,497 [INFO] Actualizando: ./tablero_produccion.html
+2026-06-07 08:39:04,514 [INFO]   'records': 200863 → 200863 chars
+2026-06-07 08:39:04,515 [INFO]   'anticipos': 2586 → 2586 chars
+2026-06-07 08:39:04,516 [INFO]   Guardado: 467KB
+2026-06-07 08:39:04,516 [INFO] 
+✓ Todos los tableros actualizados exitosamente
+2026-06-07 08:39:04,516 [INFO]   (Push a GitHub omitido - modo CI)
+2026-06-07 08:39:04,516 [INFO] ============================================================
