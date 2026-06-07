@@ -1,0 +1,29 @@
+2026-06-07 22:33:57,318 [INFO] ============================================================
+2026-06-07 22:33:57,318 [INFO] IEBC - Actualización automática de tableros
+2026-06-07 22:33:57,318 [INFO] Fecha: 2026-06-07 22:33:57
+2026-06-07 22:33:57,318 [INFO] ============================================================
+2026-06-07 22:33:57,388 [INFO] Leyendo Excel: Master UOPs.xlsx
+2026-06-07 22:33:57,490 [INFO] Hojas encontradas: ['Master', '530 con Mora - Calc de int', 'Anticipos', 'Montos contractuales']
+2026-06-07 22:33:57,503 [INFO] Master: 172 registros (excluidas: {'01-862', '00-121', '00-173', '01-884', '01-000'})
+2026-06-07 22:33:57,503 [INFO] Anticipos: 7 registros
+2026-06-07 22:33:57,504 [INFO] Mora: 22 facturas, Total a reclamar: $321,050,065.51
+2026-06-07 22:33:57,504 [INFO] Montos contractuales: 6 UOPs
+2026-06-07 22:33:57,504 [INFO] Actualizando: ./tablero_cfo.html
+2026-06-07 22:33:57,517 [INFO]   'records': 170268 → 171124 chars
+2026-06-07 22:33:57,519 [INFO]   'anticipos': 2586 → 2586 chars
+2026-06-07 22:33:57,523 [INFO]   'MORA_DATA': 7457 → 7455 chars
+2026-06-07 22:33:57,524 [INFO]   Guardado: 491KB
+2026-06-07 22:33:57,524 [INFO] Actualizando: ./tablero_ceo.html
+2026-06-07 22:33:57,535 [INFO]   'records': 170268 → 171124 chars
+2026-06-07 22:33:57,536 [INFO]   'anticipos': 2586 → 2586 chars
+2026-06-07 22:33:57,537 [INFO]   'montos_contractuales': 1081 → 1081 chars
+2026-06-07 22:33:57,538 [INFO]   Guardado: 448KB
+2026-06-07 22:33:57,538 [INFO] Actualizando: ./tablero_produccion.html
+2026-06-07 22:33:57,551 [INFO]   'records': 170268 → 171124 chars
+2026-06-07 22:33:57,552 [INFO]   'anticipos': 2586 → 2586 chars
+2026-06-07 22:33:57,552 [INFO]   'montos_contractuales': 1081 → 1081 chars
+2026-06-07 22:33:57,553 [INFO]   Guardado: 443KB
+2026-06-07 22:33:57,553 [INFO] 
+✓ Todos los tableros actualizados exitosamente
+2026-06-07 22:33:57,553 [INFO]   (Push a GitHub omitido - modo CI)
+2026-06-07 22:33:57,553 [INFO] ============================================================
