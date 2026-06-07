@@ -218,7 +218,7 @@ function showLastUpdate() {
   .then(function(data) {
     if (data && data.length > 0) {
       var commitDate = new Date(data[0].commit.committer.date);
-      var dateStr = commitDate.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric'}) + ' ' + commitDate.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+      var dateStr = commitDate.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit', year:'numeric', timeZone:'America/Argentina/Buenos_Aires'}) + ' ' + commitDate.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit', timeZone:'America/Argentina/Buenos_Aires'}) + ' (Hora Argentina)';
       el.textContent = 'Actualizado al: ' + dateStr;
     }
   })

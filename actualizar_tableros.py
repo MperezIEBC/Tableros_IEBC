@@ -160,13 +160,19 @@ def read_excel(excel_path):
     
     log.info(f"Hojas encontradas: {wb.sheetnames}")
     
+    # UOPs excluidas del tablero de producción
+    UOPS_EXCLUIDAS = {'01-862', '00-121', '01-000', '01-884', '00-173'}
+
     # ====== HOJA 1: Master ======
     ws = wb['Master']
     headers = [c.value for c in ws[1]]
-    
+
     records = []
     for row in ws.iter_rows(min_row=2, values_only=True):
         if row[0] is None:
+            continue
+        uop_val = str(row[0]).strip() if row[0] else ''
+        if uop_val in UOPS_EXCLUIDAS:
             continue
         rec = {}
         for i, h in enumerate(headers):
@@ -178,8 +184,8 @@ def read_excel(excel_path):
                 val = 0
             rec[js_key] = val
         records.append(rec)
-    
-    log.info(f"Master: {len(records)} registros")
+
+    log.info(f"Master: {len(records)} registros (excluidas: {UOPS_EXCLUIDAS})")
     
     # ====== HOJA 2: Anticipos ======
     anticipos = []
@@ -189,6 +195,8 @@ def read_excel(excel_path):
             ant_headers = [c.value for c in ws_ant[1]]
             for row in ws_ant.iter_rows(min_row=2, values_only=True):
                 if row[0] is None:
+                    continue
+                if str(row[0]).strip() in UOPS_EXCLUIDAS:
                     continue
                 rec = {}
                 for i, h in enumerate(ant_headers):
@@ -286,12 +294,14 @@ def read_excel(excel_path):
                 uop = str(row[0]).strip() if row[0] else None
                 concepto = str(row[1]).strip() if row[1] else ''
                 monto = float(row[2]) if row[2] else 0
+                fecha = serialize(row[3]) if len(row) > 3 else None
                 if not uop or monto == 0:
                     continue
                 if uop not in montos_contractuales:
-                    montos_contractuales[uop] = {"monto": 0, "concepto": concepto}
+                    montos_contractuales[uop] = {"monto": 0, "concepto": concepto, "detalles": []}
                 montos_contractuales[uop]["monto"] += monto
-                # Keep first concepto or combine
+                montos_contractuales[uop]["detalles"].append({"concepto": concepto, "monto": monto, "fecha": fecha})
+                # Actualizar concepto combinado
                 if concepto and concepto not in montos_contractuales[uop]["concepto"]:
                     montos_contractuales[uop]["concepto"] += ' + ' + concepto if montos_contractuales[uop]["concepto"] else concepto
             log.info(f"Montos contractuales: {len(montos_contractuales)} UOPs")
@@ -391,7 +401,7 @@ def update_html_file(filepath, records, anticipos, mora_data=None, montos_contra
     # Reemplazar anticipos
     html = replace_json_array(html, 'anticipos', anticipos)
     
-    # Reemplazar montos_contractuales (solo CEO)
+    # Reemplazar montos_contractuales (CEO y Producción)
     if montos_contractuales and 'montos_contractuales' in html:
         html = replace_json_obj_by_key(html, 'montos_contractuales', montos_contractuales)
 
