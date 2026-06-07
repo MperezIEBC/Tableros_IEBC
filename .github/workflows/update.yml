@@ -2,7 +2,8 @@ name: Actualizar Tableros IEBC
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 * * * *'
+    # 03:00 y 15:00 hora Argentina (UTC-3) = 06:00 y 18:00 UTC
+    - cron: '0 6,18 * * *'
 permissions:
   contents: write
 jobs:
