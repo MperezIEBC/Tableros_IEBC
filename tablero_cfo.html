@@ -206,6 +206,7 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:
 .status-chip.violeta{background:rgba(108,92,231,0.1);color:#6c5ce7;border-color:rgba(108,92,231,0.3)}
 .status-chip.verde{background:rgba(0,212,170,0.1);color:#00b894;border-color:rgba(0,212,170,0.3)}
 .status-chip.rojo{background:rgba(231,76,60,0.1);color:#e74c3c;border-color:rgba(231,76,60,0.3)}
+.status-chip.celeste{background:rgba(26,160,196,0.1);color:#1aa0c4;border-color:rgba(26,160,196,0.3)}
 
 /* Tables */
 .table-card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin-bottom:24px}
@@ -215,7 +216,7 @@ th{background:#f8f9fa;padding:10px 12px;text-align:left;font-weight:600;color:#6
 td{padding:9px 12px;border-bottom:1px solid #f0f0f0}
 tr:hover td{background:#f8f9ff}
 .text-right{text-align:right}.text-green{color:#00b894}.text-red{color:#e74c3c}.text-orange{color:#f39c12}.text-blue{color:#2b2bd4}.text-purple{color:#6c5ce7}
-.row-azul{border-left:4px solid #2b2bd4}.row-naranja{border-left:4px solid #f39c12}.row-violeta{border-left:4px solid #6c5ce7}.row-verde{border-left:4px solid #00d4aa}.row-rojo{border-left:4px solid #e74c3c}.row-gris{border-left:4px solid #999;opacity:0.7}
+.row-azul{border-left:4px solid #2b2bd4}.row-naranja{border-left:4px solid #f39c12}.row-violeta{border-left:4px solid #6c5ce7}.row-verde{border-left:4px solid #00d4aa}.row-rojo{border-left:4px solid #e74c3c}.row-gris{border-left:4px solid #999;opacity:0.7}.row-celeste{border-left:4px solid #1aa0c4}
 .demora-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:8px 0}
 .demora-card{background:#f8f9fa;border-radius:10px;padding:12px 14px;position:relative}
 .demora-card .dc-name{font-size:0.72rem;color:#555;font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -317,7 +318,8 @@ tr:hover td{background:#f8f9ff}
       <div class="status-chip violeta active" data-status="2" onclick="toggleStatusFilter(this)">Cobrado Parcial</div>
       <div class="status-chip verde active" data-status="3" onclick="toggleStatusFilter(this)">Cobrado</div>
       <div class="status-chip rojo active" data-status="4" onclick="toggleStatusFilter(this)">Notas de Credito</div>
-      <div class="status-chip" style="background:rgba(150,150,150,0.1);border-color:rgba(150,150,150,0.3);color:#999" data-status="6" onclick="toggleStatusFilter(this)">Facturas NO de Obras</div>
+      <div class="status-chip celeste active" data-status="8" onclick="toggleStatusFilter(this)">Saldado c/Anticipo</div>
+      <div class="status-chip active" style="background:rgba(150,150,150,0.1);border-color:rgba(150,150,150,0.3);color:#999" data-status="6" onclick="toggleStatusFilter(this)">Facturas NO de Obras</div>
       <div class="status-chip" style="background:rgba(231,76,60,0.08);border-color:rgba(231,76,60,0.25);color:#c0392b" data-status="7" onclick="toggleSaldoFilter(this)">Solo con Saldo</div>
     </div>
     <div class="legend-bar"><div class="legend-item"><div class="legend-dot" style="background:#2b2bd4"></div>Sin facturar</div><div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>Pend. cobro</div><div class="legend-item"><div class="legend-dot" style="background:#6c5ce7"></div>Parcial</div><div class="legend-item"><div class="legend-dot" style="background:#00d4aa"></div>Cobrado</div><div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Nota de Credito</div></div>
@@ -526,7 +528,7 @@ function resetFilters(){
   });
   ['msComitente','msUOP','msEstado','msAnio','msMes','msAnioFact','msMesFact','msAnioCob','msMesCob'].forEach(updateMSCount);
   document.querySelectorAll('.status-chip').forEach(c=>{const s=parseInt(c.dataset.status);if(s===6){c.classList.remove('active');c.classList.add('inactive')}else{c.classList.add('active');c.classList.remove('inactive')}});
-  activeStatuses=new Set([0,1,2,3,4]);
+  activeStatuses=new Set([0,1,2,3,4,6,8]);
   renderAll();
 }
 function applyFilters(){renderAll()}
@@ -616,7 +618,7 @@ function updateActiveFiltersBar(){
 }
 
 // === STATUS FILTERS ===
-let activeStatuses=new Set([0,1,2,3,4]);
+let activeStatuses=new Set([0,1,2,3,4,6,8]);
 function toggleStatusFilter(el){const s=parseInt(el.dataset.status);if(activeStatuses.has(s)){activeStatuses.delete(s);el.classList.remove('active');el.classList.add('inactive')}else{activeStatuses.add(s);el.classList.add('active');el.classList.remove('inactive')};renderFacturasTable(getFilteredData())}
 let soloConSaldo=false;
 function toggleSaldoFilter(el){soloConSaldo=!soloConSaldo;el.classList.toggle('active',soloConSaldo);el.classList.toggle('inactive',!soloConSaldo);renderFacturasTable(getFilteredData())}
@@ -695,10 +697,12 @@ function renderFacturasTable(recs){
     const cob=r.total_cobrado>0&&Math.abs(r.saldo)<=10;
     const par=r.total_cobrado>0&&r.saldo>10;
     const pen=r.importe_neto_factura>0&&r.total_cobrado===0&&r.saldo>10;
+    const cancAntic=(r.anticipo_desacopiado||0)>0&&r.importe_neto_factura>0&&r.total_cobrado===0&&Math.abs(r.saldo)<=10;
     let st,rc,sl;
     if(noObra){st=6;rc='row-gris';sl='No de Obras'}
     else if(isNC){st=4;rc='row-rojo';sl='Nota de Credito'}
     else if(sf){st=0;rc='row-azul';sl='Sin Facturar'}
+    else if(cancAntic){st=8;rc='row-celeste';sl='Saldado c/Anticipo'}
     else if(pen){st=1;rc='row-naranja';sl='Pend. Cobro'}
     else if(par){st=2;rc='row-violeta';sl='Cobro Parcial'}
     else if(cob){st=3;rc='row-verde';sl='Cobrado'}
@@ -724,7 +728,7 @@ function renderFacturasTable(recs){
     const fCob=r.fecha_pago_1?r.fecha_pago_1.substring(0,10).split('-').reverse().join('/'):'<span style="color:#aaa">-</span>';
     tbody2.innerHTML+='<tr class="'+r.rowClass+'"><td><strong>'+r.uop+'</strong></td><td>'+per+'</td><td>'+(r.tipo_comprobante||'')+' '+(r.nro_comprobante||'')+'</td><td>'+(r.concepto_agrupado||'').substring(0,15)+'</td><td class="text-right">'+fmtFull(r.importe_neto_cert)+'</td><td class="text-right">'+fmtFull(r.importe_neto_factura)+'</td><td class="text-right">'+(fci>0?fmtFull(fci):'-')+'</td><td style="font-size:0.75rem">'+fFact+'</td><td class="text-right text-green">'+fmtFull(r.total_cobrado)+'</td><td style="font-size:0.75rem">'+fCob+'</td><td class="text-right '+(r.saldo>10?'text-red':'text-green')+'">'+fmtFull(r.saldo)+'</td><td><span style="font-size:0.7rem;font-weight:600">'+r.statusLabel+'</span></td><td>'+dem+'</td></tr>';
   });
-  [0,1,2,3,4,6].forEach(s=>{
+  [0,1,2,3,4,6,8].forEach(s=>{
     const cnt=allR.filter(r=>r.status===s).length;
     const chip=document.querySelector('.status-chip[data-status="'+s+'"]');
     if(chip){const t=chip.textContent.replace(/\s*\(\d+\)/,'');chip.textContent=t+' ('+cnt+')'}

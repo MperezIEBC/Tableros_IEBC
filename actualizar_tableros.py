@@ -167,12 +167,9 @@ def read_excel(excel_path):
     ws = wb['Master']
     headers = [c.value for c in ws[1]]
 
-    records = []
+    records_full = []
     for row in ws.iter_rows(min_row=2, values_only=True):
         if row[0] is None:
-            continue
-        uop_val = str(row[0]).strip() if row[0] else ''
-        if uop_val in UOPS_EXCLUIDAS:
             continue
         rec = {}
         for i, h in enumerate(headers):
@@ -183,20 +180,22 @@ def read_excel(excel_path):
             if val is None and js_key in NUMERIC_FIELDS:
                 val = 0
             rec[js_key] = val
-        records.append(rec)
+        records_full.append(rec)
 
-    log.info(f"Master: {len(records)} registros (excluidas: {UOPS_EXCLUIDAS})")
-    
+    # records: set filtrado (sin UOPS_EXCLUIDAS) -> usado en CEO y Producción
+    # records_full: set completo (incluye UOPS_EXCLUIDAS) -> usado en CFO
+    records = [r for r in records_full if str(r.get('uop', '')).strip() not in UOPS_EXCLUIDAS]
+
+    log.info(f"Master: {len(records_full)} registros totales / {len(records)} para CEO-Produccion (excluidas: {UOPS_EXCLUIDAS})")
+
     # ====== HOJA 2: Anticipos ======
-    anticipos = []
+    anticipos_full = []
     for sn in wb.sheetnames:
         if 'anticipo' in sn.lower():
             ws_ant = wb[sn]
             ant_headers = [c.value for c in ws_ant[1]]
             for row in ws_ant.iter_rows(min_row=2, values_only=True):
                 if row[0] is None:
-                    continue
-                if str(row[0]).strip() in UOPS_EXCLUIDAS:
                     continue
                 rec = {}
                 for i, h in enumerate(ant_headers):
@@ -207,10 +206,12 @@ def read_excel(excel_path):
                     if val is None:
                         val = 0
                     rec[js_key] = val
-                anticipos.append(rec)
+                anticipos_full.append(rec)
             break
-    
-    log.info(f"Anticipos: {len(anticipos)} registros")
+
+    anticipos = [a for a in anticipos_full if str(a.get('uop', '')).strip() not in UOPS_EXCLUIDAS]
+
+    log.info(f"Anticipos: {len(anticipos_full)} registros totales / {len(anticipos)} para CEO-Produccion")
     
     # ====== HOJA 3: Mora (530) ======
     mora_data = None
@@ -308,7 +309,7 @@ def read_excel(excel_path):
             break
 
     wb.close()
-    return records, anticipos, mora_data, montos_contractuales
+    return records, records_full, anticipos, anticipos_full, mora_data, montos_contractuales
 
 
 def replace_json_array(html, key, new_data):
@@ -499,7 +500,7 @@ def main():
     
     # Leer datos
     try:
-        records, anticipos, mora_data, montos_contractuales = read_excel(args.ruta_excel)
+        records, records_full, anticipos, anticipos_full, mora_data, montos_contractuales = read_excel(args.ruta_excel)
     except Exception as e:
         log.error(f"Error leyendo Excel: {e}")
         sys.exit(1)
@@ -512,7 +513,11 @@ def main():
             log.warning(f"Archivo no encontrado: {fpath}")
             continue
         try:
-            update_html_file(fpath, records, anticipos, mora_data, montos_contractuales)
+            if fname == 'tablero_cfo.html':
+                # CFO ve el set completo, incluyendo UOPs que CEO/Produccion excluyen
+                update_html_file(fpath, records_full, anticipos_full, mora_data, montos_contractuales)
+            else:
+                update_html_file(fpath, records, anticipos, mora_data, montos_contractuales)
         except Exception as e:
             log.error(f"Error actualizando {fname}: {e}")
             errores += 1
