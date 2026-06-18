@@ -358,7 +358,7 @@ tr:hover td{background:#f8f9ff}
       <div class="status-chip rojoclaro inactive" data-status="7" onclick="toggleSaldoFilter(this)">Solo con Saldo</div>
     </div>
     <div class="legend-bar"><div class="legend-item"><div class="legend-dot" style="background:#2b2bd4"></div>Sin facturar</div><div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>Pend. cobro</div><div class="legend-item"><div class="legend-dot" style="background:#6c5ce7"></div>Parcial</div><div class="legend-item"><div class="legend-dot" style="background:#00d4aa"></div>Cobrado</div><div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Nota de Credito</div></div>
-    <div style="overflow-x:auto"><table id="tableFacturas"><thead><tr><th class="sortable-th" onclick="sortFacturas('uop')">UOP<span class="sort-icon" id="si-uop"></span></th><th class="sortable-th" onclick="sortFacturas('periodo')">Periodo<span class="sort-icon" id="si-periodo"></span></th><th class="sortable-th" onclick="sortFacturas('comprobante')">Comprobante<span class="sort-icon" id="si-comprobante"></span></th><th class="sortable-th" onclick="sortFacturas('concepto')">Concepto<span class="sort-icon" id="si-concepto"></span></th><th class="sortable-th text-right" onclick="sortFacturas('cert')">Certificado<span class="sort-icon" id="si-cert"></span></th><th class="sortable-th text-right" onclick="sortFacturas('neto')">Neto Factura<span class="sort-icon" id="si-neto"></span></th><th class="sortable-th text-right" onclick="sortFacturas('fci')">Fact. c/Imp<span class="sort-icon" id="si-fci"></span></th><th class="sortable-th" onclick="sortFacturas('fechaFactura')">Fecha Factura<span class="sort-icon" id="si-fechaFactura"></span></th><th class="sortable-th text-right" onclick="sortFacturas('cobrado')">Cobrado<span class="sort-icon" id="si-cobrado"></span></th><th class="sortable-th" onclick="sortFacturas('fechaCobro')">Fecha Cobro<span class="sort-icon" id="si-fechaCobro"></span></th><th class="sortable-th text-right" onclick="sortFacturas('saldo')">Saldo<span class="sort-icon" id="si-saldo"></span></th><th class="sortable-th" onclick="sortFacturas('estado')">Estado<span class="sort-icon" id="si-estado"></span></th><th class="sortable-th" onclick="sortFacturas('demora')">Demora<span class="sort-icon" id="si-demora"></span></th></tr></thead><tbody></tbody><tfoot id="tableFacturasFoot"><tr style="font-weight:700;background:#f0f0f5;border-top:2px solid #2b2bd4"><td colspan="4" style="text-align:right">TOTALES</td><td class="text-right" id="tfCert">-</td><td class="text-right" id="tfNeto">-</td><td class="text-right" id="tfImp">-</td><td></td><td class="text-right" id="tfCob">-</td><td></td><td class="text-right" id="tfSaldo">-</td><td colspan="2"></td></tr></tfoot></table></div>
+    <div style="overflow-x:auto"><table id="tableFacturas"><thead><tr><th class="sortable-th" onclick="sortFacturas('uop')">UOP<span class="sort-icon" id="si-uop"></span></th><th class="sortable-th" onclick="sortFacturas('periodo')">Periodo<span class="sort-icon" id="si-periodo"></span></th><th class="sortable-th" onclick="sortFacturas('comprobante')">Comprobante<span class="sort-icon" id="si-comprobante"></span></th><th class="sortable-th" onclick="sortFacturas('concepto')">Concepto<span class="sort-icon" id="si-concepto"></span></th><th class="sortable-th" onclick="sortFacturas('tipoConcepto')">Basico/Redet<span class="sort-icon" id="si-tipoConcepto"></span></th><th class="sortable-th text-right" onclick="sortFacturas('cert')">Certificado<span class="sort-icon" id="si-cert"></span></th><th class="sortable-th text-right" onclick="sortFacturas('neto')">Neto Factura<span class="sort-icon" id="si-neto"></span></th><th class="sortable-th text-right" onclick="sortFacturas('fci')">Fact. c/Imp<span class="sort-icon" id="si-fci"></span></th><th class="sortable-th" onclick="sortFacturas('fechaFactura')">Fecha Factura<span class="sort-icon" id="si-fechaFactura"></span></th><th class="sortable-th text-right" onclick="sortFacturas('cobrado')">Cobrado<span class="sort-icon" id="si-cobrado"></span></th><th class="sortable-th" onclick="sortFacturas('fechaCobro')">Fecha Cobro<span class="sort-icon" id="si-fechaCobro"></span></th><th class="sortable-th text-right" onclick="sortFacturas('saldo')">Saldo<span class="sort-icon" id="si-saldo"></span></th><th class="sortable-th" onclick="sortFacturas('estado')">Estado<span class="sort-icon" id="si-estado"></span></th><th class="sortable-th" onclick="sortFacturas('demora')">Demora<span class="sort-icon" id="si-demora"></span></th></tr></thead><tbody></tbody><tfoot id="tableFacturasFoot"><tr style="font-weight:700;background:#f0f0f5;border-top:2px solid #2b2bd4"><td colspan="5" style="text-align:right">TOTALES</td><td class="text-right" id="tfCert">-</td><td class="text-right" id="tfNeto">-</td><td class="text-right" id="tfImp">-</td><td></td><td class="text-right" id="tfCob">-</td><td></td><td class="text-right" id="tfSaldo">-</td><td colspan="2"></td></tr></tfoot></table></div>
   </div>
 
   </div><!-- end tab-main -->
@@ -670,9 +670,17 @@ function getFilteredData(){
     if(smf.length>0){if(!r.fecha_factura||!smf.includes(r.fecha_factura.substring(5,7)))return false;}
     if(sac.length>0){if(!r.fecha_pago_1||!sac.includes(r.fecha_pago_1.substring(0,4)))return false;}
     if(smc.length>0){if(!r.fecha_pago_1||!smc.includes(r.fecha_pago_1.substring(5,7)))return false;}
-    if(pr&&r.periodo&&_dateReEvol.test(r.periodo.substring(0,7))){
-      const pm=r.periodo.substring(0,7);
-      if(pm<pr.from||pm>pr.to)return false;
+    if(pr){
+      if(r.periodo&&_dateReEvol.test(r.periodo.substring(0,7))){
+        const pm=r.periodo.substring(0,7);
+        if(pm<pr.from||pm>pr.to)return false;
+      } else {
+        // Registros sin periodo real (ej. Anticipos): ubicar por fecha de factura o de cobro
+        const dPeriods=[];
+        if(r.fecha_factura)dPeriods.push(r.fecha_factura.substring(0,7));
+        if(r.fecha_pago_1)dPeriods.push(r.fecha_pago_1.substring(0,7));
+        if(dPeriods.length>0&&!dPeriods.some(d=>d>=pr.from&&d<=pr.to))return false;
+      }
     }
     return true;
   });
@@ -804,7 +812,7 @@ const NO_OBRA_UOPS=new Set(['00-121','01-000','01-862','01-884']);
 
 // === ORDENAMIENTO TABLA DETALLE DE FACTURAS ===
 let facturasSortCol=null, facturasSortDir=1;
-const facturasSortFieldMap={uop:'uop',periodo:'periodo',comprobante:'comprobante',concepto:'concepto_agrupado',cert:'importe_neto_cert',neto:'importe_neto_factura',fci:'fci',fechaFactura:'fecha_factura',cobrado:'total_cobrado',fechaCobro:'fecha_pago_1',saldo:'saldo',estado:'statusLabel',demora:'demoraNum'};
+const facturasSortFieldMap={uop:'uop',periodo:'periodo',comprobante:'comprobante',concepto:'concepto',tipoConcepto:'concepto_agrupado',cert:'importe_neto_cert',neto:'importe_neto_factura',fci:'fci',fechaFactura:'fecha_factura',cobrado:'total_cobrado',fechaCobro:'fecha_pago_1',saldo:'saldo',estado:'statusLabel',demora:'demoraNum'};
 const facturasSortNumericCols=new Set(['cert','neto','fci','cobrado','saldo','demora']);
 function sortFacturas(col){
   if(facturasSortCol===col){facturasSortDir*=-1;}else{facturasSortCol=col;facturasSortDir=1;}
@@ -830,7 +838,7 @@ function renderFacturasTable(recs){
   // Check if period filters are active
   const periodFilterActive=isFilterActive('msAnio')||isFilterActive('msMes')||isFilterActive('msAnioFact')||isFilterActive('msMesFact')||isFilterActive('msAnioCob')||isFilterActive('msMesCob');
   const allR=filtered.map(r=>{
-    const isNC=r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0;
+    const isNC=(r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0)||r.anulada==='ANULADA';
     // UOPs que no corresponden a obras/proyectos, sino a otros servicios
     const noObra=NO_OBRA_UOPS.has(r.uop);
     const sf=r.importe_neto_cert>0&&r.importe_neto_factura===0;
@@ -886,7 +894,7 @@ function renderFacturasTable(recs){
     const per=r.periodo&&/^\d{4}/.test(r.periodo)?r.periodo.substring(0,7):'-';
     const fFact=r.fecha_factura?r.fecha_factura.substring(0,10).split('-').reverse().join('/'):'<span style="color:#aaa">-</span>';
     const fCob=r.fecha_pago_1?r.fecha_pago_1.substring(0,10).split('-').reverse().join('/'):'<span style="color:#aaa">-</span>';
-    tbody2.innerHTML+='<tr class="'+r.rowClass+'"><td><strong>'+r.uop+'</strong></td><td>'+per+'</td><td>'+(r.tipo_comprobante||'')+' '+(r.nro_comprobante||'')+'</td><td>'+(r.concepto_agrupado||'').substring(0,15)+'</td><td class="text-right">'+fmtFull(r.importe_neto_cert)+'</td><td class="text-right">'+fmtFull(r.importe_neto_factura)+'</td><td class="text-right">'+(fci>0?fmtFull(fci):'-')+'</td><td style="font-size:0.75rem">'+fFact+'</td><td class="text-right text-green">'+fmtFull(r.total_cobrado)+'</td><td style="font-size:0.75rem">'+fCob+'</td><td class="text-right '+(r.saldo>10?'text-red':'text-green')+'">'+fmtFull(r.saldo)+'</td><td><span style="font-size:0.7rem;font-weight:600">'+r.statusLabel+'</span></td><td>'+dem+'</td></tr>';
+    tbody2.innerHTML+='<tr class="'+r.rowClass+'"><td><strong>'+r.uop+'</strong></td><td>'+per+'</td><td>'+(r.tipo_comprobante||'')+' '+(r.nro_comprobante||'')+'</td><td>'+(r.concepto||'<span style="color:#aaa">-</span>')+'</td><td>'+(r.concepto_agrupado||'').substring(0,15)+'</td><td class="text-right">'+fmtFull(r.importe_neto_cert)+'</td><td class="text-right">'+fmtFull(r.importe_neto_factura)+'</td><td class="text-right">'+(fci>0?fmtFull(fci):'-')+'</td><td style="font-size:0.75rem">'+fFact+'</td><td class="text-right text-green">'+fmtFull(r.total_cobrado)+'</td><td style="font-size:0.75rem">'+fCob+'</td><td class="text-right '+(r.saldo>10?'text-red':'text-green')+'">'+fmtFull(r.saldo)+'</td><td><span style="font-size:0.7rem;font-weight:600">'+r.statusLabel+'</span></td><td>'+dem+'</td></tr>';
   });
   [0,1,2,3,4,5,6,8].forEach(s=>{
     const cnt=allR.filter(r=>r.status===s).length;
@@ -916,7 +924,7 @@ function renderAll(){
   const recs=getFilteredData();
 
   // KPIs - excluir NC, separar anticipos
-  const isNCr=r=>r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0;
+  const isNCr=r=>(r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0)||r.anulada==='ANULADA';
   const antConc=new Set(['Anticipo','Dev. Anticipo','Desacopio','NA']);
   const obraRecs=recs.filter(r=>!isNCr(r)&&!antConc.has(r.concepto_agrupado));
   const antRecs=recs.filter(r=>!isNCr(r)&&antConc.has(r.concepto_agrupado));
@@ -948,7 +956,7 @@ function renderAll(){
   // EVOLUCION
   const periods={};
   const anticipoConc=new Set(['Anticipo','Dev. Anticipo','Desacopio','NA']);
-  const isNC=r=>r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0;
+  const isNC=r=>(r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0)||r.anulada==='ANULADA';
   recs.forEach(r=>{
     if(isNC(r)){
       // NC: ubicar por periodo (el periodo certificado al que corresponde la NC)
@@ -1005,7 +1013,7 @@ function renderAll(){
   // FACTURADO VS COBRADO MENSUAL (con impuestos) - by fecha_factura and fecha_pago
   const pFact={}, pCob={}, pNC2={};
   recs.forEach(r=>{
-    const ncFlag=r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0;
+    const ncFlag=(r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0)||r.anulada==='ANULADA';
     if(ncFlag){
       // NC: agrupar por fecha_factura, valor absoluto
       if(r.fecha_factura){
@@ -1117,7 +1125,7 @@ function renderAll(){
 
   // CONCEPTOS - by Concepto > UOP (excluir NC para no distorsionar)
   const cmDetail={};
-  const isNCfn=r=>r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0;
+  const isNCfn=r=>(r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0)||r.anulada==='ANULADA';
   recs.forEach(r=>{
     if(isNCfn(r))return;
     let k=r.concepto_agrupado||'';const kl=k.toLowerCase();
