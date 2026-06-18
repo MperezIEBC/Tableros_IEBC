@@ -177,6 +177,22 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:
 .zoom-btn:hover{background:#2b2bd4;color:#fff;border-color:#2b2bd4}
 .zoom-label{font-size:0.68rem;color:#aaa}
 .drag-hint{font-size:0.68rem;color:#aaa;font-style:italic;margin-left:8px}
+.dual-range-wrap{position:relative;flex:1;height:18px;display:flex;align-items:center}
+.dual-range-track{position:absolute;left:0;right:0;height:4px;background:#e8e8e8;border-radius:2px;top:50%;transform:translateY(-50%)}
+.dual-range-fill{position:absolute;height:4px;background:linear-gradient(90deg,#2b2bd4,#00d4aa);border-radius:2px;top:50%;transform:translateY(-50%)}
+input[type=range].dual-range{position:absolute;left:0;width:100%;margin:0;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none}
+input[type=range].dual-range::-webkit-slider-runnable-track{background:transparent}
+input[type=range].dual-range::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid #2b2bd4;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.3);margin-top:0}
+input[type=range].dual-range::-moz-range-track{background:transparent}
+input[type=range].dual-range::-moz-range-thumb{pointer-events:auto;width:10px;height:10px;border-radius:50%;background:#fff;border:3px solid #2b2bd4;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+input[type=range].dual-range.rmax::-webkit-slider-thumb{border-color:#00d4aa}
+input[type=range].dual-range.rmax::-moz-range-thumb{border-color:#00d4aa}
+.sortable-th{cursor:pointer;user-select:none;white-space:nowrap;position:relative;transition:background 0.15s}
+.sortable-th:hover{background:#e4e7fa}
+.sortable-th:hover .sort-icon{opacity:0.85}
+.sortable-th.active-sort{background:#dde1f7}
+.sort-icon{font-size:0.7rem;color:#2b2bd4;margin-left:5px;display:inline-block;min-width:10px;opacity:0.3;transition:opacity 0.15s}
+.sort-icon.on{opacity:1;font-weight:700;color:#1a1a8c}
 .evol-scroll-wrap{overflow-x:auto;overflow-y:hidden;cursor:grab;-webkit-overflow-scrolling:touch}
 .evol-scroll-wrap:active{cursor:grabbing}
 .evol-inner{min-width:100%}
@@ -200,13 +216,16 @@ body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:
 .status-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
 .status-filters .sf-label{font-size:0.75rem;color:#888;font-weight:600;margin-right:4px}
 .status-chip{padding:6px 14px;border-radius:10px;font-size:0.75rem;cursor:pointer;font-weight:600;transition:all 0.2s;user-select:none;border:2px solid transparent}
-.status-chip.active{opacity:1}.status-chip.inactive{opacity:0.4}
+.status-chip.active{opacity:1}
+.status-chip.inactive{opacity:1;background:rgba(150,150,150,0.12)!important;color:#999!important;border-color:rgba(150,150,150,0.3)!important}
 .status-chip.azul{background:rgba(43,43,212,0.1);color:#2b2bd4;border-color:rgba(43,43,212,0.3)}
 .status-chip.naranja{background:rgba(243,156,18,0.1);color:#f39c12;border-color:rgba(243,156,18,0.3)}
 .status-chip.violeta{background:rgba(108,92,231,0.1);color:#6c5ce7;border-color:rgba(108,92,231,0.3)}
 .status-chip.verde{background:rgba(0,212,170,0.1);color:#00b894;border-color:rgba(0,212,170,0.3)}
 .status-chip.rojo{background:rgba(231,76,60,0.1);color:#e74c3c;border-color:rgba(231,76,60,0.3)}
 .status-chip.celeste{background:rgba(26,160,196,0.1);color:#1aa0c4;border-color:rgba(26,160,196,0.3)}
+.status-chip.gris{background:rgba(150,150,150,0.1);color:#999;border-color:rgba(150,150,150,0.3)}
+.status-chip.rojoclaro{background:rgba(231,76,60,0.08);color:#c0392b;border-color:rgba(231,76,60,0.25)}
 
 /* Tables */
 .table-card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin-bottom:24px}
@@ -289,9 +308,24 @@ tr:hover td{background:#f8f9ff}
   <div class="charts-grid">
     <div class="chart-card full">
       <h3>Por Período Certificado: Facturado vs Cobrado</h3>
-      <div class="subtitle">Montos netos por periodo &mdash; Arrastre para navegar, botones para zoom</div>
+      <div class="subtitle">Montos netos por periodo &mdash; Arrastre para navegar, sliders para zoom (el rango de periodo filtra todo el tablero)</div>
       <div class="chart-toolbar" id="yearChips"></div>
-      <div class="evol-scroll-wrap" id="evolScrollWrap"><div class="evol-inner"><div class="chart-container"><canvas id="chartEvolucion"></canvas></div></div></div>
+      <div style="display:flex;align-items:stretch;gap:0">
+        <div id="ySliderWrapEvol" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0 4px 0 0;width:28px;position:relative">
+          <input type="range" id="rangeYMaxEvol" min="5" max="100" value="100" style="writing-mode:vertical-lr;direction:rtl;accent-color:#2b2bd4;cursor:pointer">
+        </div>
+        <div class="evol-scroll-wrap" id="evolScrollWrap" style="flex:1"><div class="evol-inner"><div class="chart-container"><canvas id="chartEvolucion"></canvas></div></div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span id="rangeMinLabelEvol" style="font-size:0.65rem;color:#888;min-width:55px"></span>
+        <div class="dual-range-wrap">
+          <div class="dual-range-track"></div>
+          <div class="dual-range-fill" id="dualFillEvol"></div>
+          <input type="range" class="dual-range" id="rangeMinEvol" min="0" max="1" value="0">
+          <input type="range" class="dual-range rmax" id="rangeMaxEvol" min="0" max="1" value="1">
+        </div>
+        <span id="rangeMaxLabelEvol" style="font-size:0.65rem;color:#888;min-width:55px;text-align:right"></span>
+      </div>
     </div>
     <div class="chart-card full-width">
       <h3>Mensual: Facturado Vs Cobrado (con imp.)</h3>
@@ -313,17 +347,18 @@ tr:hover td{background:#f8f9ff}
   <div class="table-card">
     <h3>Detalle de Facturas</h3>
     <div class="status-filters" id="statusFilters"><span class="sf-label">Mostrar:</span>
-      <div class="status-chip azul active" data-status="0" onclick="toggleStatusFilter(this)">Cert. Pend. Facturacion</div>
+      <div class="status-chip azul inactive" data-status="0" onclick="toggleStatusFilter(this)">Cert. Pend. Facturacion</div>
       <div class="status-chip naranja active" data-status="1" onclick="toggleStatusFilter(this)">Facturado Pend. Cobro</div>
-      <div class="status-chip violeta active" data-status="2" onclick="toggleStatusFilter(this)">Cobrado Parcial</div>
-      <div class="status-chip verde active" data-status="3" onclick="toggleStatusFilter(this)">Cobrado</div>
-      <div class="status-chip rojo active" data-status="4" onclick="toggleStatusFilter(this)">Notas de Credito</div>
-      <div class="status-chip celeste active" data-status="8" onclick="toggleStatusFilter(this)">Saldado c/Anticipo</div>
-      <div class="status-chip active" style="background:rgba(150,150,150,0.1);border-color:rgba(150,150,150,0.3);color:#999" data-status="6" onclick="toggleStatusFilter(this)">Facturas NO de Obras</div>
-      <div class="status-chip" style="background:rgba(231,76,60,0.08);border-color:rgba(231,76,60,0.25);color:#c0392b" data-status="7" onclick="toggleSaldoFilter(this)">Solo con Saldo</div>
+      <div class="status-chip violeta inactive" data-status="2" onclick="toggleStatusFilter(this)">Cobrado Parcial</div>
+      <div class="status-chip verde inactive" data-status="3" onclick="toggleStatusFilter(this)">Cobrado</div>
+      <div class="status-chip rojo inactive" data-status="4" onclick="toggleStatusFilter(this)">Notas de Credito</div>
+      <div class="status-chip celeste inactive" data-status="8" onclick="toggleStatusFilter(this)">Saldado c/Anticipo</div>
+      <div class="status-chip gris inactive" data-status="6" onclick="toggleStatusFilter(this)">Facturas NO de Obras</div>
+      <div class="status-chip gris inactive" data-status="5" onclick="toggleStatusFilter(this)">Otros / Sin Clasificar</div>
+      <div class="status-chip rojoclaro inactive" data-status="7" onclick="toggleSaldoFilter(this)">Solo con Saldo</div>
     </div>
     <div class="legend-bar"><div class="legend-item"><div class="legend-dot" style="background:#2b2bd4"></div>Sin facturar</div><div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>Pend. cobro</div><div class="legend-item"><div class="legend-dot" style="background:#6c5ce7"></div>Parcial</div><div class="legend-item"><div class="legend-dot" style="background:#00d4aa"></div>Cobrado</div><div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Nota de Credito</div></div>
-    <div style="overflow-x:auto"><table id="tableFacturas"><thead><tr><th>UOP</th><th>Periodo</th><th>Comprobante</th><th>Concepto</th><th class="text-right">Certificado</th><th class="text-right">Neto Factura</th><th class="text-right">Fact. c/Imp</th><th>Fecha Factura</th><th class="text-right">Cobrado</th><th>Fecha Cobro</th><th class="text-right">Saldo</th><th>Estado</th><th>Demora</th></tr></thead><tbody></tbody><tfoot id="tableFacturasFoot"><tr style="font-weight:700;background:#f0f0f5;border-top:2px solid #2b2bd4"><td colspan="4" style="text-align:right">TOTALES</td><td class="text-right" id="tfCert">-</td><td class="text-right" id="tfNeto">-</td><td class="text-right" id="tfImp">-</td><td></td><td class="text-right" id="tfCob">-</td><td></td><td class="text-right" id="tfSaldo">-</td><td colspan="2"></td></tr></tfoot></table></div>
+    <div style="overflow-x:auto"><table id="tableFacturas"><thead><tr><th class="sortable-th" onclick="sortFacturas('uop')">UOP<span class="sort-icon" id="si-uop"></span></th><th class="sortable-th" onclick="sortFacturas('periodo')">Periodo<span class="sort-icon" id="si-periodo"></span></th><th class="sortable-th" onclick="sortFacturas('comprobante')">Comprobante<span class="sort-icon" id="si-comprobante"></span></th><th class="sortable-th" onclick="sortFacturas('concepto')">Concepto<span class="sort-icon" id="si-concepto"></span></th><th class="sortable-th text-right" onclick="sortFacturas('cert')">Certificado<span class="sort-icon" id="si-cert"></span></th><th class="sortable-th text-right" onclick="sortFacturas('neto')">Neto Factura<span class="sort-icon" id="si-neto"></span></th><th class="sortable-th text-right" onclick="sortFacturas('fci')">Fact. c/Imp<span class="sort-icon" id="si-fci"></span></th><th class="sortable-th" onclick="sortFacturas('fechaFactura')">Fecha Factura<span class="sort-icon" id="si-fechaFactura"></span></th><th class="sortable-th text-right" onclick="sortFacturas('cobrado')">Cobrado<span class="sort-icon" id="si-cobrado"></span></th><th class="sortable-th" onclick="sortFacturas('fechaCobro')">Fecha Cobro<span class="sort-icon" id="si-fechaCobro"></span></th><th class="sortable-th text-right" onclick="sortFacturas('saldo')">Saldo<span class="sort-icon" id="si-saldo"></span></th><th class="sortable-th" onclick="sortFacturas('estado')">Estado<span class="sort-icon" id="si-estado"></span></th><th class="sortable-th" onclick="sortFacturas('demora')">Demora<span class="sort-icon" id="si-demora"></span></th></tr></thead><tbody></tbody><tfoot id="tableFacturasFoot"><tr style="font-weight:700;background:#f0f0f5;border-top:2px solid #2b2bd4"><td colspan="4" style="text-align:right">TOTALES</td><td class="text-right" id="tfCert">-</td><td class="text-right" id="tfNeto">-</td><td class="text-right" id="tfImp">-</td><td></td><td class="text-right" id="tfCob">-</td><td></td><td class="text-right" id="tfSaldo">-</td><td colspan="2"></td></tr></tfoot></table></div>
   </div>
 
   </div><!-- end tab-main -->
@@ -402,6 +437,57 @@ const DATA = {"meta": {"generated": "2026-05-28 14:00:00", "total_registros": 19
 const fmtMillones=(n)=>{if(n===0)return'$0';const abs=Math.abs(n);const sign=n<0?'-':'';if(abs>=1e6){const m=abs/1e6;return sign+'$'+m.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2})+' M'}return sign+'$'+abs.toLocaleString('es-AR',{maximumFractionDigits:0})};
 const fmtM=(n)=>{const abs=Math.abs(n);const sign=n<0?'-':'';if(abs>=1e6)return sign+'$'+(abs/1e6).toFixed(1)+'M';if(abs>=1e3)return sign+'$'+(abs/1e3).toFixed(0)+'K';return sign+'$'+abs.toFixed(0)};
 const fmtFull=(n)=>'$'+n.toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+// Period range slider (horizontal zoom) for "Por Período Certificado" — filtra TODO el tablero
+const _dateReEvol=/^\d{4}-\d{2}$/;
+const allMonthsEvol=[...new Set(DATA.records.filter(r=>r.periodo&&_dateReEvol.test(r.periodo.substring(0,7))).map(r=>r.periodo.substring(0,7)))].sort();
+const rangeMinEvol=document.getElementById('rangeMinEvol'), rangeMaxEvol=document.getElementById('rangeMaxEvol');
+const rangeMinLabelEvol=document.getElementById('rangeMinLabelEvol'), rangeMaxLabelEvol=document.getElementById('rangeMaxLabelEvol');
+if(rangeMinEvol&&rangeMaxEvol){
+  rangeMinEvol.max=rangeMaxEvol.max=Math.max(allMonthsEvol.length-1,0);
+  rangeMinEvol.value=0;
+  rangeMaxEvol.value=Math.max(allMonthsEvol.length-1,0);
+}
+const dualFillEvol=document.getElementById('dualFillEvol');
+function updatePeriodRangeEvol(){
+  if(!rangeMinEvol||!rangeMaxEvol) return;
+  const lo=parseInt(rangeMinEvol.value), hi=parseInt(rangeMaxEvol.value);
+  if(rangeMinLabelEvol)rangeMinLabelEvol.textContent=allMonthsEvol[lo]||'';
+  if(rangeMaxLabelEvol)rangeMaxLabelEvol.textContent=allMonthsEvol[hi]||'';
+  if(dualFillEvol){
+    const max=parseInt(rangeMinEvol.max)||1;
+    const pLo=max>0?(lo/max*100):0, pHi=max>0?(hi/max*100):100;
+    dualFillEvol.style.left=pLo+'%';
+    dualFillEvol.style.width=Math.max(pHi-pLo,0)+'%';
+  }
+}
+function getPeriodRangeEvol(){
+  if(!rangeMinEvol||!rangeMaxEvol||allMonthsEvol.length===0) return null;
+  const lo=Math.min(parseInt(rangeMinEvol.value),parseInt(rangeMaxEvol.value));
+  const hi=Math.max(parseInt(rangeMinEvol.value),parseInt(rangeMaxEvol.value));
+  return {from:allMonthsEvol[lo], to:allMonthsEvol[hi]};
+}
+function onPeriodRangeChangeEvol(e){
+  const lo=parseInt(rangeMinEvol.value), hi=parseInt(rangeMaxEvol.value);
+  if(lo>hi){
+    // Evita que las manijas se crucen: se detienen al encontrarse (permite seleccionar un solo mes)
+    if(e&&e.target&&e.target.id==='rangeMinEvol'){ rangeMinEvol.value=hi; }
+    else { rangeMaxEvol.value=lo; }
+  }
+  updatePeriodRangeEvol();
+  renderAll();
+}
+if(rangeMinEvol&&rangeMaxEvol){
+  rangeMinEvol.addEventListener('input',onPeriodRangeChangeEvol);
+  rangeMaxEvol.addEventListener('input',onPeriodRangeChangeEvol);
+  // Trae al frente la manija que el usuario está tocando, para poder separarlas cuando coinciden en el mismo mes
+  [rangeMinEvol,rangeMaxEvol].forEach(el=>{
+    const bringFront=()=>{ el.style.zIndex=3; (el===rangeMinEvol?rangeMaxEvol:rangeMinEvol).style.zIndex=2; };
+    el.addEventListener('mousedown',bringFront);
+    el.addEventListener('touchstart',bringFront);
+  });
+  updatePeriodRangeEvol();
+}
 
 (function(){
   const now=new Date();
@@ -527,8 +613,8 @@ function resetFilters(){
     opt.classList.toggle('hidden',!avail.meses.has(v));
   });
   ['msComitente','msUOP','msEstado','msAnio','msMes','msAnioFact','msMesFact','msAnioCob','msMesCob'].forEach(updateMSCount);
-  document.querySelectorAll('.status-chip').forEach(c=>{const s=parseInt(c.dataset.status);if(s===6){c.classList.remove('active');c.classList.add('inactive')}else{c.classList.add('active');c.classList.remove('inactive')}});
-  activeStatuses=new Set([0,1,2,3,4,6,8]);
+  document.querySelectorAll('.status-chip').forEach(c=>{const s=parseInt(c.dataset.status);if(s===1){c.classList.add('active');c.classList.remove('inactive')}else{c.classList.remove('active');c.classList.add('inactive')}});
+  activeStatuses=new Set([1]);
   renderAll();
 }
 function applyFilters(){renderAll()}
@@ -573,6 +659,7 @@ function getFilteredData(){
   const smf=isFilterActive('msMesFact')?getCheckedValues('msMesFact'):[];
   const sac=isFilterActive('msAnioCob')?getCheckedValues('msAnioCob'):[];
   const smc=isFilterActive('msMesCob')?getCheckedValues('msMesCob'):[];
+  const pr=typeof getPeriodRangeEvol==='function'?getPeriodRangeEvol():null;
   return DATA.records.filter(r=>{
     if(sc.length>0&&!sc.includes(r.comitente)&&r.comitente&&r.comitente!=='N/A')return false;
     if(su.length>0&&!su.includes(r.uop))return false;
@@ -583,6 +670,10 @@ function getFilteredData(){
     if(smf.length>0){if(!r.fecha_factura||!smf.includes(r.fecha_factura.substring(5,7)))return false;}
     if(sac.length>0){if(!r.fecha_pago_1||!sac.includes(r.fecha_pago_1.substring(0,4)))return false;}
     if(smc.length>0){if(!r.fecha_pago_1||!smc.includes(r.fecha_pago_1.substring(5,7)))return false;}
+    if(pr&&r.periodo&&_dateReEvol.test(r.periodo.substring(0,7))){
+      const pm=r.periodo.substring(0,7);
+      if(pm<pr.from||pm>pr.to)return false;
+    }
     return true;
   });
 }
@@ -618,7 +709,7 @@ function updateActiveFiltersBar(){
 }
 
 // === STATUS FILTERS ===
-let activeStatuses=new Set([0,1,2,3,4,6,8]);
+let activeStatuses=new Set([1]);
 function toggleStatusFilter(el){const s=parseInt(el.dataset.status);if(activeStatuses.has(s)){activeStatuses.delete(s);el.classList.remove('active');el.classList.add('inactive')}else{activeStatuses.add(s);el.classList.add('active');el.classList.remove('inactive')};renderFacturasTable(getFilteredData())}
 let soloConSaldo=false;
 function toggleSaldoFilter(el){soloConSaldo=!soloConSaldo;el.classList.toggle('active',soloConSaldo);el.classList.toggle('inactive',!soloConSaldo);renderFacturasTable(getFilteredData())}
@@ -644,6 +735,31 @@ function applyZoom(){
   const inner=document.querySelector('.evol-inner');
   inner.style.minWidth=Math.round(100*zoomLevel)+'%';
   if(charts.evol)charts.evol.resize();
+}
+
+// Vertical zoom (Y max slider) for chartEvolucion
+let evolGlobalMax=0;
+const rangeYMaxEvol=document.getElementById('rangeYMaxEvol');
+const ySliderWrapEvol=document.getElementById('ySliderWrapEvol');
+function syncSliderHeightEvol(){
+  if(!charts.evol||!rangeYMaxEvol) return;
+  const ca=charts.evol.chartArea;
+  if(!ca) return;
+  const h=ca.bottom-ca.top;
+  rangeYMaxEvol.style.height=h+'px';
+  ySliderWrapEvol.style.paddingTop=ca.top+'px';
+}
+function applyYZoomEvol(){
+  if(!charts.evol||!rangeYMaxEvol) return;
+  const pct=parseInt(rangeYMaxEvol.value);
+  const yHi=evolGlobalMax*pct/100;
+  charts.evol.options.scales.y.max=pct<100?yHi:undefined;
+  charts.evol.update();
+  syncSliderHeightEvol();
+}
+if(rangeYMaxEvol){
+  rangeYMaxEvol.addEventListener('input',applyYZoomEvol);
+  new ResizeObserver(syncSliderHeightEvol).observe(document.getElementById('chartEvolucion'));
 }
 
 // Drag to scroll
@@ -683,6 +799,31 @@ const barValuePlugin={
   }
 };
 
+// UOPs que corresponden a otros servicios (no a obras/proyectos)
+const NO_OBRA_UOPS=new Set(['00-121','01-000','01-862','01-884']);
+
+// === ORDENAMIENTO TABLA DETALLE DE FACTURAS ===
+let facturasSortCol=null, facturasSortDir=1;
+const facturasSortFieldMap={uop:'uop',periodo:'periodo',comprobante:'comprobante',concepto:'concepto_agrupado',cert:'importe_neto_cert',neto:'importe_neto_factura',fci:'fci',fechaFactura:'fecha_factura',cobrado:'total_cobrado',fechaCobro:'fecha_pago_1',saldo:'saldo',estado:'statusLabel',demora:'demoraNum'};
+const facturasSortNumericCols=new Set(['cert','neto','fci','cobrado','saldo','demora']);
+function sortFacturas(col){
+  if(facturasSortCol===col){facturasSortDir*=-1;}else{facturasSortCol=col;facturasSortDir=1;}
+  renderFacturasTable(getFilteredData());
+}
+function updateFacturasSortIcons(){
+  document.querySelectorAll('#tableFacturas thead .sortable-th').forEach(th=>{
+    th.classList.remove('active-sort');
+    const ic=th.querySelector('.sort-icon');
+    if(ic){ic.textContent='⇕';ic.classList.remove('on')}
+  });
+  if(facturasSortCol){
+    const th=document.getElementById('si-'+facturasSortCol)?document.getElementById('si-'+facturasSortCol).closest('th'):null;
+    const el=document.getElementById('si-'+facturasSortCol);
+    if(el){el.textContent=facturasSortDir===1?'▲':'▼';el.classList.add('on')}
+    if(th)th.classList.add('active-sort');
+  }
+}
+
 function renderFacturasTable(recs){
   const tbody2=document.querySelector('#tableFacturas tbody');tbody2.innerHTML='';
   const filtered=recs.filter(r=>r.importe_neto_cert!==0||r.importe_neto_factura!==0||r.total_cobrado!==0);
@@ -690,9 +831,8 @@ function renderFacturasTable(recs){
   const periodFilterActive=isFilterActive('msAnio')||isFilterActive('msMes')||isFilterActive('msAnioFact')||isFilterActive('msMesFact')||isFilterActive('msAnioCob')||isFilterActive('msMesCob');
   const allR=filtered.map(r=>{
     const isNC=r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0;
-    const noPeriodo=!r.periodo||!/^\d{4}/.test(r.periodo);
-    const tieneActividad=r.importe_neto_factura!==0||r.total_cobrado!==0||r.fecha_factura;
-    const noObra=noPeriodo&&!tieneActividad;
+    // UOPs que no corresponden a obras/proyectos, sino a otros servicios
+    const noObra=NO_OBRA_UOPS.has(r.uop);
     const sf=r.importe_neto_cert>0&&r.importe_neto_factura===0;
     const cob=r.total_cobrado>0&&Math.abs(r.saldo)<=10;
     const par=r.total_cobrado>0&&r.saldo>10;
@@ -707,9 +847,29 @@ function renderFacturasTable(recs){
     else if(par){st=2;rc='row-violeta';sl='Cobro Parcial'}
     else if(cob){st=3;rc='row-verde';sl='Cobrado'}
     else{st=5;rc='';sl='-'}
-    return{...r,status:st,rowClass:rc,statusLabel:sl};
+    const imp2=(r.iva_105||0)+(r.iva_21||0)+(r.percep_iva||0)+(r.iibb_bsas||0)+(r.iibb_caba||0)+(r.iibb_tucuman||0)+(r.iibb_stafe||0);
+    const fci2=r.importe_neto_factura>0?r.importe_neto_factura+imp2:0;
+    const comprobante2=((r.tipo_comprobante||'')+' '+(r.nro_comprobante||'')).trim();
+    const demoraNum2=r.demora_pago==='Pendiente'?Infinity:(typeof r.demora_pago==='number'?r.demora_pago:-1);
+    return{...r,status:st,rowClass:rc,statusLabel:sl,fci:fci2,comprobante:comprobante2,demoraNum:demoraNum2};
   });
-  allR.sort((a,b)=>{if(a.status!==b.status)return a.status-b.status;return b.saldo-a.saldo});
+  if(facturasSortCol){
+    const f=facturasSortFieldMap[facturasSortCol];
+    const isNum=facturasSortNumericCols.has(facturasSortCol);
+    allR.sort((a,b)=>{
+      let va=a[f],vb=b[f];
+      if(isNum){
+        va=(va==null||isNaN(va))?-Infinity:va;
+        vb=(vb==null||isNaN(vb))?-Infinity:vb;
+        return facturasSortDir*(va-vb);
+      }
+      va=va||'';vb=vb||'';
+      return facturasSortDir*String(va).localeCompare(String(vb),'es',{numeric:true});
+    });
+  }else{
+    allR.sort((a,b)=>{if(a.status!==b.status)return a.status-b.status;return b.saldo-a.saldo});
+  }
+  updateFacturasSortIcons();
   // If period filter active, hide "no obra" rows unless explicitly enabled
   let fil=allR.filter(r=>{
     if(soloConSaldo&&Math.abs(r.saldo)<=10)return false;
@@ -717,7 +877,7 @@ function renderFacturasTable(recs){
       if(periodFilterActive)return false;
       return activeStatuses.has(6);
     }
-    return activeStatuses.has(r.status)||r.status===5;
+    return activeStatuses.has(r.status);
   });
   fil.forEach(r=>{
     const imp=(r.iva_105||0)+(r.iva_21||0)+(r.percep_iva||0)+(r.iibb_bsas||0)+(r.iibb_caba||0)+(r.iibb_tucuman||0)+(r.iibb_stafe||0);
@@ -728,7 +888,7 @@ function renderFacturasTable(recs){
     const fCob=r.fecha_pago_1?r.fecha_pago_1.substring(0,10).split('-').reverse().join('/'):'<span style="color:#aaa">-</span>';
     tbody2.innerHTML+='<tr class="'+r.rowClass+'"><td><strong>'+r.uop+'</strong></td><td>'+per+'</td><td>'+(r.tipo_comprobante||'')+' '+(r.nro_comprobante||'')+'</td><td>'+(r.concepto_agrupado||'').substring(0,15)+'</td><td class="text-right">'+fmtFull(r.importe_neto_cert)+'</td><td class="text-right">'+fmtFull(r.importe_neto_factura)+'</td><td class="text-right">'+(fci>0?fmtFull(fci):'-')+'</td><td style="font-size:0.75rem">'+fFact+'</td><td class="text-right text-green">'+fmtFull(r.total_cobrado)+'</td><td style="font-size:0.75rem">'+fCob+'</td><td class="text-right '+(r.saldo>10?'text-red':'text-green')+'">'+fmtFull(r.saldo)+'</td><td><span style="font-size:0.7rem;font-weight:600">'+r.statusLabel+'</span></td><td>'+dem+'</td></tr>';
   });
-  [0,1,2,3,4,6,8].forEach(s=>{
+  [0,1,2,3,4,5,6,8].forEach(s=>{
     const cnt=allR.filter(r=>r.status===s).length;
     const chip=document.querySelector('.status-chip[data-status="'+s+'"]');
     if(chip){const t=chip.textContent.replace(/\s*\(\d+\)/,'');chip.textContent=t+' ('+cnt+')'}
@@ -839,6 +999,8 @@ function renderAll(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtMillones(ctx.raw)}}},scales:{y:{ticks:{callback:v=>fmtM(v)},grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}},
     plugins:[barValuePlugin]
   });
+  evolGlobalMax=Math.max(1,...pK.map(k=>Math.max(periods[k].cert,periods[k].fact,periods[k].cob,periods[k].nc||0)));
+  if(typeof applyYZoomEvol==='function')applyYZoomEvol();
 
   // FACTURADO VS COBRADO MENSUAL (con impuestos) - by fecha_factura and fecha_pago
   const pFact={}, pCob={}, pNC2={};
