@@ -305,26 +305,9 @@ DATA.deudores=Object.values(_dm).filter(d=>d.saldo_total>0).sort((a,b)=>b.saldo_
   document.getElementById('lastUpdate').textContent='Actualizado: '+dd+'/'+mm+'/'+yyyy+' '+hh+':'+mi+' (Buenos Aires)';
 })();
 
-// Executive KPIs - CFO style cards
-const k = DATA.kpis;
-document.getElementById('execKPIs').innerHTML = `
-  <div class="kpi-card blue"><div class="label">Certificado Total</div><div class="value">${fmtMillones(k.total_certificado)}</div><div class="sub">${k.uops_activas} UOPs activas</div></div>
-  <div class="kpi-card green"><div class="label">Facturado Total (sin imp.)</div><div class="value">${fmtMillones(k.total_facturado)}</div><div class="sub">${k.ratio_facturacion}% del certificado</div></div>
-  <div class="kpi-card purple"><div class="label">Cobrado Total (con imp.)</div><div class="value">${fmtMillones(k.total_cobrado)}</div><div class="sub">${k.ratio_cobranza}% cobranza</div></div>
-  <div class="kpi-card red"><div class="label">Saldo Pendiente</div><div class="value">${fmtMillones(k.total_saldo)}</div><div class="sub">${DATA.deudores.length} deudores</div></div>
-`;
+// Executive KPIs — se renderizan vía rebuildKPIs() para responder al slider
 
-// Gauges
-const ratioFact = k.ratio_facturacion;
-// Calcular facturado con imp. para comparación coherente con cobrado (ambos c/imp.)
-const totalFactConImp=DATA.records.filter(r=>!_excludeUOPs.has(r.uop)&&r.anulada!=='ANULADA').reduce((s,r)=>s+(r.importe_factura||0),0);
-const ratioCobReal=totalFactConImp>0?(k.total_cobrado/totalFactConImp*100):0;
-const ratioDeuda = totalFactConImp>0?((totalFactConImp-k.total_saldo)/totalFactConImp*100):0;
-document.getElementById('gaugeRow').innerHTML = `
-  <div class="gauge-card"><h3>Facturacion del Certificado</h3><div class="gauge-bar"><div class="gauge-fill" style="width:${ratioFact}%;background:linear-gradient(90deg,#2b2bd4,#6c5ce7)"></div></div><div class="gauge-value">${ratioFact.toFixed(1)}%</div><div class="gauge-sub">${fmt(k.total_facturado)} de ${fmt(k.total_certificado)}</div></div>
-  <div class="gauge-card"><h3>Cobranza Efectiva</h3><div class="gauge-bar"><div class="gauge-fill" style="width:${ratioCobReal}%;background:linear-gradient(90deg,#00d4aa,#00b894)"></div></div><div class="gauge-value">${ratioCobReal.toFixed(1)}%</div><div class="gauge-sub">${fmt(k.total_cobrado)} de ${fmt(totalFactConImp)}</div><div style="font-size:0.65rem;color:#aaa;margin-top:6px;line-height:1.4">Cobrado (c/imp.) / Facturado (c/imp.)<br>${fmt(k.total_cobrado)} / ${fmt(totalFactConImp)}</div></div>
-  <div class="gauge-card"><h3>Salud Financiera</h3><div class="gauge-bar"><div class="gauge-fill" style="width:${ratioDeuda}%;background:linear-gradient(90deg,${ratioDeuda>70?'#00d4aa':'#f39c12'},${ratioDeuda>70?'#00b894':'#e17055'})"></div></div><div class="gauge-value">${ratioDeuda.toFixed(1)}%</div><div class="gauge-sub">Deuda: ${fmt(k.total_saldo)}</div><div style="font-size:0.65rem;color:#aaa;margin-top:6px;line-height:1.4">(Facturado c/imp. - Saldo) / Facturado c/imp.<br>${fmt(totalFactConImp)} - ${fmt(k.total_saldo)} = ${fmt(totalFactConImp - k.total_saldo)}</div></div>
-`;
+// Gauges + KPIs — se renderizan vía rebuildKPIs()
 
 // Alerts (section removed from UI)
 
@@ -398,7 +381,56 @@ function updateTrendRange(){
   chartTrend.data.datasets.forEach((ds,i)=>{ds.data=allDS[i].data.slice(lo,hi+1);});
   chartTrend.update();
 }
-function onRangeChange(){updateTrendRange();rebuildComitentes();rebuildUOPs();}
+// ── rebuildKPIs: recalcula KPIs y gauges desde los records filtrados por el slider ──
+function rebuildKPIs(){
+  const lo=parseInt(rangeMin.value), hi=parseInt(rangeMax.value);
+  const fromM=allMonths[Math.min(lo,hi)], toM=allMonths[Math.max(lo,hi)];
+  const inRange=m=>m&&m!=='None'&&m.substring(0,7)>=fromM&&m.substring(0,7)<=toM;
+  const isFiltered=!(lo===0&&hi===allMonths.length-1);
+
+  let totalCert=0,totalFact=0,totalCob=0,totalFactConImp=0;
+  const uopsSet=new Set();
+
+  DATA.records.forEach(r=>{
+    if(r.anulada==='ANULADA') return;
+    // NC: excluir de Facturado/Cobrado (los NC tienen importe negativo, ya descontados del gráfico)
+    const isNC=(r.tipo_comprobante&&r.tipo_comprobante.toUpperCase().indexOf('NC')===0);
+    // Certificado — filtrar por periodo
+    if(r.periodo&&inRange(r.periodo)){
+      totalCert+=r.importe_neto_cert||0;
+      uopsSet.add(r.uop);
+    }
+    // Facturado — filtrar por fecha_factura (excluye NC puras; las NC ya impactan con importe_neto negativo)
+    if(!isNC&&r.fecha_factura&&inRange(r.fecha_factura)){
+      totalFact+=r.importe_neto_factura||0;
+      totalFactConImp+=r.importe_factura||0;
+    }
+    // Cobrado — filtrar por fecha de cada pago
+    [['fecha_pago_1','monto_pago_1'],['fecha_pago_2','monto_pago_2'],['fecha_pago_3','monto_pago_3']].forEach(([fk,mk])=>{
+      if(r[fk]&&inRange(r[fk])&&r[mk]>0) totalCob+=r[mk];
+    });
+  });
+
+  const totalSaldo=Math.max(totalFactConImp-totalCob,0);
+  const ratioFact=totalCert>0?(totalFact/totalCert*100):0;
+  const ratioCobReal=totalFactConImp>0?(totalCob/totalFactConImp*100):0;
+  const ratioDeuda=totalFactConImp>0?((totalFactConImp-totalSaldo)/totalFactConImp*100):0;
+  const deudoresN=(DATA.deudores||[]).length;
+  const subCert=isFiltered?fromM+' → '+toM:uopsSet.size+' UOPs activas';
+
+  document.getElementById('execKPIs').innerHTML=`
+    <div class="kpi-card blue"><div class="label">Certificado Total</div><div class="value">${fmtMillones(totalCert)}</div><div class="sub">${subCert}</div></div>
+    <div class="kpi-card green"><div class="label">Facturado Total (sin imp.)</div><div class="value">${fmtMillones(totalFact)}</div><div class="sub">${ratioFact.toFixed(1)}% del certificado</div></div>
+    <div class="kpi-card purple"><div class="label">Cobrado Total (con imp.)</div><div class="value">${fmtMillones(totalCob)}</div><div class="sub">${ratioCobReal.toFixed(1)}% cobranza</div></div>
+    <div class="kpi-card red"><div class="label">Saldo Pendiente</div><div class="value">${fmtMillones(totalSaldo)}</div><div class="sub">${deudoresN} deudores</div></div>`;
+
+  document.getElementById('gaugeRow').innerHTML=`
+    <div class="gauge-card"><h3>Facturacion del Certificado</h3><div class="gauge-bar"><div class="gauge-fill" style="width:${Math.min(ratioFact,100)}%;background:linear-gradient(90deg,#2b2bd4,#6c5ce7)"></div></div><div class="gauge-value">${ratioFact.toFixed(1)}%</div><div class="gauge-sub">${fmt(totalFact)} de ${fmt(totalCert)}</div></div>
+    <div class="gauge-card"><h3>Cobranza Efectiva</h3><div class="gauge-bar"><div class="gauge-fill" style="width:${Math.min(ratioCobReal,100)}%;background:linear-gradient(90deg,#00d4aa,#00b894)"></div></div><div class="gauge-value">${ratioCobReal.toFixed(1)}%</div><div class="gauge-sub">${fmt(totalCob)} de ${fmt(totalFactConImp)}</div><div style="font-size:0.65rem;color:#aaa;margin-top:6px;line-height:1.4">Cobrado (c/imp.) / Facturado (c/imp.)<br>${fmt(totalCob)} / ${fmt(totalFactConImp)}</div></div>
+    <div class="gauge-card"><h3>Salud Financiera</h3><div class="gauge-bar"><div class="gauge-fill" style="width:${Math.min(ratioDeuda,100)}%;background:linear-gradient(90deg,${ratioDeuda>70?'#00d4aa':'#f39c12'},${ratioDeuda>70?'#00b894':'#e17055'})"></div></div><div class="gauge-value">${ratioDeuda.toFixed(1)}%</div><div class="gauge-sub">Deuda: ${fmt(totalSaldo)}</div><div style="font-size:0.65rem;color:#aaa;margin-top:6px;line-height:1.4">(Facturado c/imp. - Saldo) / Facturado c/imp.<br>${fmt(totalFactConImp)} - ${fmt(totalSaldo)} = ${fmt(totalFactConImp-totalSaldo)}</div></div>`;
+}
+// ───────────────────────────────────────────────────────────────────────────────
+function onRangeChange(){updateTrendRange();rebuildKPIs();rebuildComitentes();rebuildUOPs();}
 rangeMin.addEventListener('input',onRangeChange);
 rangeMax.addEventListener('input',onRangeChange);
 updateTrendRange();
@@ -512,6 +544,7 @@ function rebuildUOPs(){
   });
   document.getElementById('scoreboardContent').innerHTML=scoreHTML;
 }
+rebuildKPIs();
 rebuildComitentes();
 rebuildUOPs();
 
