@@ -1209,3 +1209,32 @@
 ✓ Todos los tableros actualizados exitosamente
 2026-06-29 20:01:25,014 [INFO]   (Push a GitHub omitido - modo CI)
 2026-06-29 20:01:25,014 [INFO] ============================================================
+2026-06-30 09:42:02,072 [INFO] ============================================================
+2026-06-30 09:42:02,072 [INFO] IEBC - Actualización automática de tableros
+2026-06-30 09:42:02,072 [INFO] Fecha: 2026-06-30 09:42:02
+2026-06-30 09:42:02,072 [INFO] ============================================================
+2026-06-30 09:42:02,199 [INFO] Leyendo Excel: Master UOPs.xlsx
+2026-06-30 09:42:02,347 [INFO] Hojas encontradas: ['Master', '530 con Mora - Calc de int', 'Anticipos', 'Montos contractuales']
+2026-06-30 09:42:02,363 [INFO] Master: 226 registros totales / 195 para CEO-Produccion (excluidas: {'00-121', '00-173', '01-884', '01-000', '01-862'})
+2026-06-30 09:42:02,363 [INFO] Anticipos: 7 registros totales / 7 para CEO-Produccion
+2026-06-30 09:42:02,364 [INFO] Mora: 22 facturas, Total a reclamar: $0.00
+2026-06-30 09:42:02,364 [INFO] Montos contractuales: 6 UOPs
+2026-06-30 09:42:02,364 [INFO] Actualizando: ./tablero_cfo.html
+2026-06-30 09:42:02,385 [INFO]   'records': 209338 → 209338 chars
+2026-06-30 09:42:02,387 [INFO]   'anticipos': 2290 → 2290 chars
+2026-06-30 09:42:02,392 [INFO]   'MORA_DATA': 6297 → 6297 chars
+2026-06-30 09:42:02,393 [INFO]   Guardado: 542KB
+2026-06-30 09:42:02,394 [INFO] Actualizando: ./tablero_ceo.html
+2026-06-30 09:42:02,409 [INFO]   'records': 181530 → 181530 chars
+2026-06-30 09:42:02,410 [INFO]   'anticipos': 2290 → 2290 chars
+2026-06-30 09:42:02,411 [INFO]   'montos_contractuales': 1081 → 1081 chars
+2026-06-30 09:42:02,413 [INFO]   Guardado: 461KB
+2026-06-30 09:42:02,413 [INFO] Actualizando: ./tablero_produccion.html
+2026-06-30 09:42:02,428 [INFO]   'records': 181530 → 181530 chars
+2026-06-30 09:42:02,429 [INFO]   'anticipos': 2290 → 2290 chars
+2026-06-30 09:42:02,430 [INFO]   'montos_contractuales': 1081 → 1081 chars
+2026-06-30 09:42:02,431 [INFO]   Guardado: 454KB
+2026-06-30 09:42:02,431 [INFO] 
+✓ Todos los tableros actualizados exitosamente
+2026-06-30 09:42:02,431 [INFO]   (Push a GitHub omitido - modo CI)
+2026-06-30 09:42:02,431 [INFO] ============================================================
